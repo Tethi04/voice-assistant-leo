@@ -570,7 +570,6 @@ If you find this project useful, please consider giving it a star on GitHub! ⭐
 | Cross-Platform | ✅ Complete | Windows, macOS, Linux |
 
 **Last Updated**: December 2025
-
 **Python Version**: 3.8+  
 **License**: MIT  
 **Maintainer**: [Tethi Biswas]
