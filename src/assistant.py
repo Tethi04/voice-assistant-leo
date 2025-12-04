@@ -1,85 +1,109 @@
-# src/assistant.py
-import speech_recognition as sr
-import pyttsx3
+# src/assistant.py - UPDATED
 import time
-import sys
-from src.commands import CommandHandler
-from src.config import Config
+import warnings
+warnings.filterwarnings('ignore')  # Suppress warnings
 
 class VoiceAssistant:
     def __init__(self, name="Leo"):
         self.name = name
-        self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
+        self.command_handler = self.init_command_handler()
         self.engine = self.init_tts()
-        self.command_handler = CommandHandler()
         self.is_listening = True
         
-        # Adjust for ambient noise
-        print("Adjusting for ambient noise... Please wait.")
-        with self.microphone as source:
-            self.recognizer.adjust_for_ambient_noise(source, duration=2)
+        # Initialize speech recognition with error handling
+        self.recognizer, self.microphone = self.init_speech_recognition()
+    
+    def init_speech_recognition(self):
+        """Initialize speech recognition with fallback"""
+        try:
+            import speech_recognition as sr
+            recognizer = sr.Recognizer()
+            microphone = sr.Microphone()
+            
+            # Adjust for ambient noise
+            print("Adjusting for ambient noise...")
+            with microphone as source:
+                recognizer.adjust_for_ambient_noise(source, duration=1)
+            
+            return recognizer, microphone
+        except Exception as e:
+            print(f"⚠️  Speech recognition initialization failed: {e}")
+            print("   Text input mode will be used instead")
+            return None, None
     
     def init_tts(self):
         """Initialize text-to-speech engine"""
-        engine = pyttsx3.init()
-        
-        # Get available voices
-        voices = engine.getProperty('voices')
-        
-        # Try to set a natural voice (prefer female voices)
-        for voice in voices:
-            if 'female' in voice.name.lower() or 'zira' in voice.name.lower():
-                engine.setProperty('voice', voice.id)
-                break
-        
-        # Set properties
-        engine.setProperty('rate', 180)  # Speed of speech
-        engine.setProperty('volume', 0.9)  # Volume 0-1
-        
-        return engine
+        try:
+            import pyttsx3
+            engine = pyttsx3.init()
+            
+            # Set properties
+            engine.setProperty('rate', 180)
+            engine.setProperty('volume', 0.9)
+            
+            return engine
+        except Exception as e:
+            print(f"⚠️  Text-to-speech initialization failed: {e}")
+            return None
+    
+    def init_command_handler(self):
+        """Initialize command handler"""
+        try:
+            from src.commands import CommandHandler
+            return CommandHandler()
+        except Exception as e:
+            print(f"❌ Command handler failed: {e}")
+            return None
     
     def speak(self, text):
         """Convert text to speech"""
         print(f"{self.name}: {text}")
-        self.engine.say(text)
-        self.engine.runAndWait()
+        
+        if self.engine:
+            try:
+                self.engine.say(text)
+                self.engine.runAndWait()
+            except:
+                pass  # Silent fail if TTS not available
     
     def listen(self):
-        """Listen for voice input"""
-        with self.microphone as source:
-            print("Listening... (speak now)")
-            try:
-                audio = self.recognizer.listen(source, timeout=Config.COMMAND_TIMEOUT)
-                print("Processing...")
+        """Listen for voice input or use text input"""
+        if not self.recognizer or not self.microphone:
+            return self.text_input_mode()
+        
+        try:
+            with self.microphone as source:
+                print("\n🎤 Listening... (speak now)")
+                audio = self.recognizer.listen(source, timeout=5)
                 
                 # Try offline recognition first
                 try:
                     text = self.recognizer.recognize_sphinx(audio)
                     print(f"You (offline): {text}")
                     return text.lower()
-                except sr.UnknownValueError:
+                except:
                     # Fallback to online recognition
-                    text = self.recognizer.recognize_google(audio)
-                    print(f"You (online): {text}")
-                    return text.lower()
-                    
-            except sr.WaitTimeoutError:
-                print("Listening timed out.")
-                return ""
-            except sr.UnknownValueError:
-                print("Sorry, I didn't catch that.")
-                return ""
-            except sr.RequestError as e:
-                print(f"Could not request results; {e}")
-                return ""
-            except Exception as e:
-                print(f"Error in listening: {e}")
-                return ""
+                    try:
+                        text = self.recognizer.recognize_google(audio)
+                        print(f"You (online): {text}")
+                        return text.lower()
+                    except:
+                        print("Sorry, I didn't catch that")
+                        return ""
+                        
+        except Exception as e:
+            print(f"Microphone error: {e}")
+            return self.text_input_mode()
+    
+    def text_input_mode(self):
+        """Fallback to text input"""
+        print("\n📝 Text Input Mode (microphone not available)")
+        print("Type your command and press Enter:")
+        return input("You: ").lower()
     
     def process_command(self, command):
         """Process the voice command"""
-        if not command:
+        if not command or not self.command_handler:
             return True
         
         response = self.command_handler.handle_command(command)
@@ -93,14 +117,9 @@ class VoiceAssistant:
     
     def run(self):
         """Main loop for the assistant"""
-        self.speak(f"Hello! I'm {self.name}, your voice assistant. How can I help you today?")
+        self.speak(f"Hello! I'm {self.name}, your voice assistant.")
         
         while self.is_listening:
             command = self.listen()
             self.is_listening = self.process_command(command)
-            time.sleep(0.5)  # Small delay between commands
-    
-    def run_once(self):
-        """Run assistant for single command (for testing)"""
-        command = self.listen()
-        return self.process_command(command)
+            time.sleep(0.5)
