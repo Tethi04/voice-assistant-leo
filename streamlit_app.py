@@ -1,8 +1,7 @@
-# streamlit_app.py - WORKING VOICE VERSION
+# streamlit_app.py - UPDATED WITH st.query_params
 import streamlit as st
 import sys
 import os
-import json
 from datetime import datetime
 
 # Add current directory to path
@@ -18,8 +17,6 @@ st.set_page_config(
 # Initialize session state
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
-if 'last_command' not in st.session_state:
-    st.session_state.last_command = ""
 
 # Inject HTML/JavaScript for Web Speech API
 st.markdown("""
@@ -174,29 +171,15 @@ st.markdown("""
     
     // Send command to Streamlit
     function sendCommandToPython(command) {
-        // Create a hidden form to submit the command
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.style.display = 'none';
-        
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'voice_command';
-        input.value = command;
-        
-        form.appendChild(input);
-        document.body.appendChild(form);
-        
-        // Submit to Streamlit
-        window.parent.postMessage({
-            type: 'streamlit:setComponentValue',
-            value: JSON.stringify({command: command})
-        }, '*');
-        
-        // Also update URL parameter
+        // Update URL with command
         const url = new URL(window.location);
         url.searchParams.set('voice_cmd', encodeURIComponent(command));
         window.history.pushState({}, '', url);
+        
+        // Reload the page to trigger Streamlit
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
     }
     
     // Text-to-Speech with MALE voice
@@ -212,24 +195,23 @@ st.markdown("""
             let maleVoice = null;
             
             for (let voice of voices) {
-                // Look for male voices (some browsers label them)
+                // Look for male voices
                 if (voice.name.toLowerCase().includes('male') || 
-                    voice.name.toLowerCase().includes('microsoft david') ||
-                    voice.name.toLowerCase().includes('google uk male')) {
+                    voice.name.toLowerCase().includes('david') ||
+                    voice.name.toLowerCase().includes('google uk')) {
                     maleVoice = voice;
                     break;
                 }
             }
             
-            // If no male voice found, use default but adjust pitch
+            // Adjust voice settings
             if (maleVoice) {
                 utterance.voice = maleVoice;
-            } else {
-                // Lower pitch for more masculine sound
-                utterance.pitch = 0.8;  // Lower than default 1.0
-                utterance.rate = 0.9;   // Slightly slower
             }
             
+            // Make voice more masculine
+            utterance.pitch = 0.8;  // Lower pitch (1.0 is normal)
+            utterance.rate = 0.9;   // Slightly slower
             utterance.volume = 1.0;
             utterance.lang = 'en-US';
             
@@ -249,16 +231,30 @@ st.markdown("""
         
         // Load voices for TTS
         if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = function() {
-                console.log('Voices loaded:', window.speechSynthesis.getVoices().length);
-            };
+            // Get voices when available
+            let voices = window.speechSynthesis.getVoices();
+            if (voices.length === 0) {
+                window.speechSynthesis.onvoiceschanged = function() {
+                    voices = window.speechSynthesis.getVoices();
+                };
+            }
         }
         
         // Check for voice command in URL
         const urlParams = new URLSearchParams(window.location.search);
         const voiceCmd = urlParams.get('voice_cmd');
         if (voiceCmd) {
-            document.getElementById('result').innerHTML = `<strong>Command received:</strong> ${decodeURIComponent(voiceCmd)}`;
+            const decodedCmd = decodeURIComponent(voiceCmd);
+            document.getElementById('result').innerHTML = `<strong>Command:</strong> ${decodedCmd}`;
+            
+            // Auto-submit after a delay
+            setTimeout(() => {
+                const input = document.querySelector('input[data-testid="stTextInput"]');
+                if (input) {
+                    input.value = decodedCmd;
+                    input.dispatchEvent(new Event('input', {bubbles: true}));
+                }
+            }, 1000);
         }
     });
     
@@ -280,12 +276,14 @@ st.markdown("### Speak commands and hear responses in male voice!")
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    # Check for voice command from URL
-    query_params = st.experimental_get_query_params()
+    # Check for voice command from URL using NEW st.query_params
     voice_command = ""
     
-    if 'voice_cmd' in query_params:
-        voice_command = query_params['voice_cmd'][0]
+    # Get query parameters (NEW WAY)
+    if 'voice_cmd' in st.query_params:
+        voice_command = st.query_params['voice_cmd']
+        if isinstance(voice_command, list):
+            voice_command = voice_command[0]
         st.success(f"🎤 Voice command detected: **{voice_command}**")
     
     # Manual input as fallback
@@ -326,7 +324,7 @@ with col1:
             """, unsafe_allow_html=True)
             
             # Add speak button with male voice
-            safe_response = response.replace("'", "\\'").replace('"', '\\"')
+            safe_response = response.replace("'", "&#39;").replace('"', "&quot;")
             st.markdown(f"""
             <button onclick="speakWithMaleVoice('{safe_response}')" 
                     style="background: #2196F3; color: white; border: none; 
@@ -345,7 +343,7 @@ with col1:
                 
         except Exception as e:
             st.error(f"Error: {str(e)}")
-            st.info("Try commands like: 'hello', 'time', 'joke', 'weather london', 'news', 'remember note'")
+            st.info("Try: 'hello', 'time', 'joke', 'weather london', 'news', 'remember note'")
 
 with col2:
     st.subheader("🎯 Quick Commands")
@@ -364,8 +362,8 @@ with col2:
     
     for display, cmd in commands:
         if st.button(display, key=f"btn_{cmd}"):
-            # Set command in URL
-            st.experimental_set_query_params(voice_cmd=cmd)
+            # Set command in URL using NEW st.query_params
+            st.query_params['voice_cmd'] = cmd
             st.rerun()
     
     st.markdown("---")
@@ -376,7 +374,10 @@ with col2:
             if msg["type"] == "user":
                 st.markdown(f"**You:** {msg['content']}")
             else:
-                st.markdown(f"**Leo:** {msg['content'][:50]}...")
+                content = msg['content']
+                if len(content) > 50:
+                    content = content[:50] + "..."
+                st.markdown(f"**Leo:** {content}")
     else:
         st.info("No conversation yet. Try speaking or typing!")
 
@@ -414,13 +415,18 @@ with st.expander("📖 How to Use Voice", expanded=True):
     st.markdown("""
     1. **Click the 🎤 "Start Voice Command" button**
     2. **Allow microphone access** when browser asks
-    3. **Speak clearly** your command (e.g., "Hello Leo", "What time is it?")
+    3. **Speak clearly** your command
     4. **Wait for Leo's response** to appear
-    5. **Click 🔊 "Hear Leo's Response"** to listen in male voice
+    5. **Click 🔊 "Hear Leo's Response"** to listen
     
     **Best with:** Google Chrome on desktop
-    **Commands to try:** hello, time, joke, weather london, news, remember [note]
+    **Test commands:** hello, time, joke, weather, news
     """)
+
+# Clear URL parameter after processing
+if 'voice_cmd' in st.query_params:
+    # Clear the parameter to avoid reprocessing
+    del st.query_params['voice_cmd']
 
 # Footer
 st.markdown("---")
@@ -433,17 +439,11 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Additional JavaScript for better voice handling
-st.components.v1.html("""
-<script>
-// Listen for messages from parent
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'streamlit:setComponentValue') {
-        // Command received from voice input
-        console.log('Command received:', event.data.value);
-    }
-});
+# Additional JavaScript
+import streamlit.components.v1 as components
 
+components.html("""
+<script>
 // Test microphone permission
 async function testMicrophone() {
     try {
@@ -451,20 +451,27 @@ async function testMicrophone() {
         stream.getTracks().forEach(track => track.stop());
         return true;
     } catch (err) {
-        console.error('Microphone error:', err);
         alert('Please allow microphone access to use voice features.');
         return false;
     }
 }
 
-// Add permission test to voice button
+// Add permission check to voice button
 document.getElementById('voiceBtn')?.addEventListener('click', async function(e) {
     if (!isListening) {
         const hasPermission = await testMicrophone();
         if (!hasPermission) {
             e.preventDefault();
-            return;
         }
+    }
+});
+
+// Auto-click voice button on page load if there's a voice command
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('voice_cmd')) {
+        // Highlight that we received a command
+        document.getElementById('result').style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
     }
 });
 </script>
