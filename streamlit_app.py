@@ -1,4 +1,4 @@
-# streamlit_app.py - UPDATED WITH st.query_params
+ # streamlit_app.py - FINAL WORKING VERSION
 import streamlit as st
 import sys
 import os
@@ -18,39 +18,43 @@ st.set_page_config(
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
-# Inject HTML/JavaScript for Web Speech API
-st.markdown("""
+# HTML/JavaScript for Voice (FIXED - will render properly)
+html_code = """
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial, sans-serif; }
         .voice-container {
             text-align: center;
-            margin: 20px 0;
-            padding: 20px;
+            margin: 20px auto;
+            padding: 25px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
+            border-radius: 20px;
             color: white;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         .voice-btn {
             background: white;
             color: #667eea;
             border: none;
-            padding: 15px 30px;
-            font-size: 18px;
+            padding: 18px 36px;
+            font-size: 20px;
             border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
-            margin: 10px;
+            margin: 15px;
             transition: all 0.3s;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            min-width: 250px;
         }
         .voice-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
         .voice-btn.listening {
             background: #FF6B6B;
@@ -63,38 +67,40 @@ st.markdown("""
             100% { transform: scale(1); }
         }
         .status {
-            margin-top: 10px;
-            font-size: 14px;
-            color: rgba(255,255,255,0.8);
+            margin-top: 15px;
+            font-size: 16px;
+            color: rgba(255,255,255,0.9);
+            min-height: 24px;
         }
-        .speak-btn {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            border: 2px dashed rgba(255,255,255,0.3);
+        }
+        .mic-icon {
+            font-size: 24px;
         }
     </style>
 </head>
 <body>
     <div class="voice-container">
-        <h3>🎤 Voice Control</h3>
+        <h2 style="margin-bottom: 20px;">🎤 Voice Control Panel</h2>
         <button id="voiceBtn" class="voice-btn" onclick="toggleVoice()">
-            <span id="micIcon">🎤</span>
+            <span id="micIcon" class="mic-icon">🎤</span>
             <span id="btnText">Start Voice Command</span>
         </button>
-        <div id="status" class="status">Click microphone and speak</div>
-        <div id="result" style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px;"></div>
+        <div id="status" class="status">Click microphone button and speak</div>
+        <div id="result" class="result-box">
+            Your voice command will appear here...
+        </div>
     </div>
 
     <script>
-    // Global variables
     let isListening = false;
     let recognition = null;
     
-    // Initialize speech recognition
     function initSpeechRecognition() {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -112,34 +118,34 @@ st.markdown("""
             
             recognition.onresult = function(event) {
                 const transcript = event.results[0][0].transcript;
-                document.getElementById('result').innerHTML = `<strong>You said:</strong> ${transcript}`;
-                document.getElementById('status').textContent = "Processing your command...";
+                document.getElementById('result').innerHTML = `<strong>You said:</strong> "${transcript}"`;
+                document.getElementById('status').textContent = "✅ Command captured!";
                 
                 // Send to Streamlit
-                sendCommandToPython(transcript);
+                sendToStreamlit(transcript);
             };
             
             recognition.onerror = function(event) {
-                console.error('Speech recognition error:', event.error);
-                document.getElementById('status').textContent = "Error: " + event.error;
+                document.getElementById('status').textContent = "❌ Error: " + event.error;
                 updateUI(false);
             };
             
             recognition.onend = function() {
                 isListening = false;
                 updateUI(false);
-                document.getElementById('status').textContent = "Click microphone to speak again";
+                if (!document.getElementById('status').textContent.includes('Error')) {
+                    document.getElementById('status').textContent = "Ready for next command";
+                }
             };
             
             return true;
         } else {
-            document.getElementById('status').textContent = "❌ Voice not supported in this browser. Use Chrome.";
+            document.getElementById('status').textContent = "❌ Voice not supported. Use Chrome.";
             document.getElementById('voiceBtn').disabled = true;
             return false;
         }
     }
     
-    // Toggle voice listening
     function toggleVoice() {
         if (!recognition) {
             if (!initSpeechRecognition()) return;
@@ -148,11 +154,18 @@ st.markdown("""
         if (isListening) {
             recognition.stop();
         } else {
-            recognition.start();
+            // Request microphone permission
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function(stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    recognition.start();
+                })
+                .catch(function(err) {
+                    document.getElementById('status').textContent = "❌ Microphone access denied";
+                });
         }
     }
     
-    // Update UI
     function updateUI(listening) {
         const btn = document.getElementById('voiceBtn');
         const icon = document.getElementById('micIcon');
@@ -169,310 +182,281 @@ st.markdown("""
         }
     }
     
-    // Send command to Streamlit
-    function sendCommandToPython(command) {
-        // Update URL with command
+    function sendToStreamlit(command) {
+        // Update URL parameter
         const url = new URL(window.location);
-        url.searchParams.set('voice_cmd', encodeURIComponent(command));
+        url.searchParams.set('voice_command', encodeURIComponent(command));
         window.history.pushState({}, '', url);
         
-        // Reload the page to trigger Streamlit
+        // Reload to trigger Streamlit
         setTimeout(() => {
             window.location.reload();
-        }, 500);
+        }, 1000);
     }
     
-    // Text-to-Speech with MALE voice
     function speakWithMaleVoice(text) {
         if ('speechSynthesis' in window) {
-            // Cancel any ongoing speech
             window.speechSynthesis.cancel();
-            
             const utterance = new SpeechSynthesisUtterance(text);
             
-            // Try to get a male voice
+            // Find male voice
             const voices = window.speechSynthesis.getVoices();
-            let maleVoice = null;
-            
             for (let voice of voices) {
-                // Look for male voices
                 if (voice.name.toLowerCase().includes('male') || 
-                    voice.name.toLowerCase().includes('david') ||
-                    voice.name.toLowerCase().includes('google uk')) {
-                    maleVoice = voice;
+                    voice.name.toLowerCase().includes('david')) {
+                    utterance.voice = voice;
                     break;
                 }
             }
             
-            // Adjust voice settings
-            if (maleVoice) {
-                utterance.voice = maleVoice;
-            }
-            
-            // Make voice more masculine
-            utterance.pitch = 0.8;  // Lower pitch (1.0 is normal)
-            utterance.rate = 0.9;   // Slightly slower
+            // Male voice settings
+            utterance.pitch = 0.8;
+            utterance.rate = 0.9;
             utterance.volume = 1.0;
             utterance.lang = 'en-US';
             
-            // Speak
             window.speechSynthesis.speak(utterance);
-            
-            return true;
-        } else {
-            alert('Text-to-speech not supported in this browser');
-            return false;
         }
     }
     
-    // Initialize on page load
+    // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         initSpeechRecognition();
         
-        // Load voices for TTS
-        if ('speechSynthesis' in window) {
-            // Get voices when available
-            let voices = window.speechSynthesis.getVoices();
-            if (voices.length === 0) {
-                window.speechSynthesis.onvoiceschanged = function() {
-                    voices = window.speechSynthesis.getVoices();
-                };
-            }
-        }
-        
-        // Check for voice command in URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const voiceCmd = urlParams.get('voice_cmd');
+        // Check for existing voice command
+        const params = new URLSearchParams(window.location.search);
+        const voiceCmd = params.get('voice_command');
         if (voiceCmd) {
-            const decodedCmd = decodeURIComponent(voiceCmd);
-            document.getElementById('result').innerHTML = `<strong>Command:</strong> ${decodedCmd}`;
-            
-            // Auto-submit after a delay
-            setTimeout(() => {
-                const input = document.querySelector('input[data-testid="stTextInput"]');
-                if (input) {
-                    input.value = decodedCmd;
-                    input.dispatchEvent(new Event('input', {bubbles: true}));
-                }
-            }, 1000);
+            document.getElementById('result').innerHTML = 
+                `<strong>Last command:</strong> "${decodeURIComponent(voiceCmd)}"`;
         }
     });
     
-    // Make functions available globally
+    // Expose functions
     window.speakWithMaleVoice = speakWithMaleVoice;
-    window.sendCommandToPython = sendCommandToPython;
     window.toggleVoice = toggleVoice;
-    
     </script>
 </body>
 </html>
-""", unsafe_allow_html=True)
+"""
 
-# Main interface
-st.title("🎤 Leo Voice Assistant")
+# Display the voice interface
+st.components.v1.html(html_code, height=400)
+
+# Main title
+st.title("🎤 Leo Voice Assistant - Live Demo")
 st.markdown("### Speak commands and hear responses in male voice!")
 
-# Create two columns
+# Get voice command from URL (FIXED: using st.query_params instead of experimental)
+voice_command = ""
+if 'voice_command' in st.query_params:
+    voice_command = st.query_params['voice_command']
+
+# Create columns
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    # Check for voice command from URL using NEW st.query_params
-    voice_command = ""
+    # Manual input fallback
+    st.subheader("📝 Type Command (or use voice above):")
     
-    # Get query parameters (NEW WAY)
-    if 'voice_cmd' in st.query_params:
-        voice_command = st.query_params['voice_cmd']
-        if isinstance(voice_command, list):
-            voice_command = voice_command[0]
-        st.success(f"🎤 Voice command detected: **{voice_command}**")
+    # Use the voice command if available, otherwise empty
+    command_input = st.text_input(
+        "Enter command:", 
+        value=voice_command,
+        key="command_input",
+        placeholder="e.g., 'hello', 'time', 'joke', 'weather london'"
+    )
     
-    # Manual input as fallback
-    st.subheader("📝 Or type command manually:")
-    manual_command = st.text_input("Enter command:", key="manual_input", value=voice_command)
-    
-    # Process command
-    current_command = voice_command or manual_command
-    
-    if current_command:
-        try:
-            from src.commands import CommandHandler
-            from src.utils import Utils
-            
-            handler = CommandHandler()
-            response = handler.handle_command(current_command)
-            
-            # Add to chat history
-            timestamp = datetime.now().strftime("%H:%M:%S")
-            st.session_state.chat_history.append({
-                "time": timestamp,
-                "type": "user",
-                "content": current_command
-            })
-            st.session_state.chat_history.append({
-                "time": timestamp,
-                "type": "leo",
-                "content": response
-            })
-            
-            # Display response
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
-                        color: white; padding: 20px; border-radius: 10px; margin: 15px 0;">
-                <h4>🤖 Leo's Response:</h4>
-                <p style="font-size: 16px;">{response}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Add speak button with male voice
-            safe_response = response.replace("'", "&#39;").replace('"', "&quot;")
-            st.markdown(f"""
-            <button onclick="speakWithMaleVoice('{safe_response}')" 
-                    style="background: #2196F3; color: white; border: none; 
-                           padding: 12px 24px; border-radius: 8px; cursor: pointer;
-                           font-size: 16px; margin-top: 10px; display: block; width: 100%;">
-                🔊 Hear Leo's Response (Male Voice)
-            </button>
-            """, unsafe_allow_html=True)
-            
-            # Visual feedback
-            if "weather" in current_command.lower():
-                st.balloons()
-                st.success("🌤️ Weather data fetched!")
-            elif "joke" in current_command.lower():
-                st.balloons()
+    # Process button
+    if st.button("🚀 Process Command", type="primary", use_container_width=True):
+        command_to_process = command_input.strip()
+        
+        if command_to_process:
+            try:
+                from src.commands import CommandHandler
+                handler = CommandHandler()
+                response = handler.handle_command(command_to_process)
                 
-        except Exception as e:
-            st.error(f"Error: {str(e)}")
-            st.info("Try: 'hello', 'time', 'joke', 'weather london', 'news', 'remember note'")
+                # Add to history
+                timestamp = datetime.now().strftime("%H:%M:%S")
+                st.session_state.chat_history.append({
+                    "time": timestamp,
+                    "type": "user",
+                    "content": command_to_process
+                })
+                st.session_state.chat_history.append({
+                    "time": timestamp,
+                    "type": "leo",
+                    "content": response
+                })
+                
+                # Display response
+                st.markdown(f"""
+                <div style="
+                    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+                    color: white;
+                    padding: 25px;
+                    border-radius: 15px;
+                    margin: 20px 0;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+                ">
+                    <h3 style="margin-top: 0;">🤖 Leo's Response</h3>
+                    <p style="font-size: 18px; line-height: 1.6;">{response}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Speak button
+                safe_response = response.replace("'", "\\'").replace('"', '\\"')
+                st.markdown(f"""
+                <button onclick="speakWithMaleVoice('{safe_response}')"
+                        style="
+                            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 10px;
+                            cursor: pointer;
+                            font-size: 18px;
+                            font-weight: bold;
+                            width: 100%;
+                            margin-top: 15px;
+                            transition: all 0.3s;
+                        "
+                        onmouseover="this.style.transform='scale(1.02)'"
+                        onmouseout="this.style.transform='scale(1)'">
+                    🔊 Hear Leo's Response (Male Voice)
+                </button>
+                """, unsafe_allow_html=True)
+                
+                # Visual effects
+                if "weather" in command_to_process.lower():
+                    st.balloons()
+                    st.success("🌤️ Weather information retrieved!")
+                elif "joke" in command_to_process.lower():
+                    st.snow()
+                    st.success("😄 Hope you enjoyed the joke!")
+                    
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)}")
+                st.info("💡 Try commands like: hello, time, joke, weather london, news, remember note")
+        else:
+            st.warning("⚠️ Please enter a command first")
 
 with col2:
     st.subheader("🎯 Quick Commands")
+    st.markdown("Click any command below:")
     
-    # Quick command buttons
-    commands = [
+    quick_commands = [
         ("👋 Hello Leo", "hello"),
         ("🕒 Current Time", "what time is it"),
         ("😄 Tell a Joke", "tell me a joke"),
-        ("🌤️ Weather", "what's the weather"),
+        ("🌤️ Weather", "weather in london"),
         ("📰 Latest News", "what's the news"),
         ("📝 Add Note", "remember buy milk"),
-        ("🔍 Search Web", "search for AI"),
-        ("🧮 Open Calculator", "open calculator"),
+        ("🔍 Search Web", "search python tutorials"),
+        ("🧮 Open App", "open calculator"),
     ]
     
-    for display, cmd in commands:
-        if st.button(display, key=f"btn_{cmd}"):
-            # Set command in URL using NEW st.query_params
-            st.query_params['voice_cmd'] = cmd
+    for display_text, cmd in quick_commands:
+        if st.button(display_text, key=f"quick_{cmd}", use_container_width=True):
+            # Update URL with command
+            st.query_params['voice_command'] = cmd
             st.rerun()
     
     st.markdown("---")
     st.subheader("📜 Recent Conversation")
     
     if st.session_state.chat_history:
-        for msg in reversed(st.session_state.chat_history[-5:]):
+        for msg in reversed(st.session_state.chat_history[-3:]):
             if msg["type"] == "user":
-                st.markdown(f"**You:** {msg['content']}")
+                st.markdown(f"**👤 You ({msg['time']}):** {msg['content']}")
             else:
                 content = msg['content']
-                if len(content) > 50:
-                    content = content[:50] + "..."
-                st.markdown(f"**Leo:** {content}")
+                if len(content) > 60:
+                    content = content[:60] + "..."
+                st.markdown(f"**🤖 Leo ({msg['time']}):** {content}")
     else:
-        st.info("No conversation yet. Try speaking or typing!")
+        st.info("💬 No conversation yet. Try a command!")
 
 # Features section
 st.markdown("---")
-st.subheader("✨ Voice Features")
+st.subheader("✨ Features")
 
-features = st.columns(3)
-with features[0]:
+col1, col2, col3 = st.columns(3)
+
+with col1:
     st.markdown("""
-    <div style="text-align: center; padding: 15px; background: #f0f2f6; border-radius: 10px;">
-        <h3>🎤 Voice Input</h3>
-        <p>Speak naturally in English</p>
+    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 15px;">
+        <h3 style="color: #667eea;">🎤 Voice Input</h3>
+        <p>Speak commands naturally</p>
+        <p style="font-size: 12px; color: #666;">Web Speech API powered</p>
     </div>
     """, unsafe_allow_html=True)
 
-with features[1]:
+with col2:
     st.markdown("""
-    <div style="text-align: center; padding: 15px; background: #f0f2f6; border-radius: 10px;">
-        <h3>🎧 Male Voice</h3>
-        <p>Responses in masculine tone</p>
+    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 15px;">
+        <h3 style="color: #4CAF50;">🎧 Male Voice</h3>
+        <p>Masculine tone responses</p>
+        <p style="font-size: 12px; color: #666;">Lower pitch settings</p>
     </div>
     """, unsafe_allow_html=True)
 
-with features[2]:
+with col3:
     st.markdown("""
-    <div style="text-align: center; padding: 15px; background: #f0f2f6; border-radius: 10px;">
-        <h3>🌐 Browser-Based</h3>
+    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 15px;">
+        <h3 style="color: #FF6B6B;">🚀 Instant</h3>
         <p>No installation needed</p>
+        <p style="font-size: 12px; color: #666;">Works in browser</p>
     </div>
     """, unsafe_allow_html=True)
 
 # Instructions
-with st.expander("📖 How to Use Voice", expanded=True):
+with st.expander("📖 How to Use (Click to expand)", expanded=True):
     st.markdown("""
-    1. **Click the 🎤 "Start Voice Command" button**
+    ### **🎤 Voice Instructions:**
+    1. **Click the microphone button** above
     2. **Allow microphone access** when browser asks
     3. **Speak clearly** your command
     4. **Wait for Leo's response** to appear
-    5. **Click 🔊 "Hear Leo's Response"** to listen
+    5. **Click 🔊 button** to hear in male voice
     
-    **Best with:** Google Chrome on desktop
-    **Test commands:** hello, time, joke, weather, news
+    ### **📝 Text Instructions:**
+    1. **Type command** in the text box
+    2. **Click "Process Command"** button
+    3. **View response** and hear it
+    
+    ### **🎯 Best Commands to Try:**
+    - "hello" - Greeting
+    - "what time is it" - Current time
+    - "tell me a joke" - Random joke
+    - "weather in london" - Weather info
+    - "what's the news" - Latest headlines
+    - "remember buy milk" - Add note
+    - "search python" - Web search
+    
+    ### **💡 Tips:**
+    - Use **Google Chrome** for best voice support
+    - Ensure **microphone is connected**
+    - Speak in **quiet environment**
+    - Allow **browser permissions**
     """)
-
-# Clear URL parameter after processing
-if 'voice_cmd' in st.query_params:
-    # Clear the parameter to avoid reprocessing
-    del st.query_params['voice_cmd']
 
 # Footer
 st.markdown("---")
 st.markdown("""
-<div style="text-align: center; color: #666; padding: 20px;">
-    <p>🔗 <a href="https://github.com/Tethi04/voice-assistant-leo" style="color: #4CAF50; text-decoration: none; font-weight: bold;">
-        View Full Project on GitHub
-    </a></p>
-    <p>🎤 Powered by Web Speech API | 🤖 Python Voice Assistant | 🚀 Streamlit Cloud</p>
+<div style="text-align: center; padding: 30px 0; color: #666;">
+    <p style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">
+        🔗 <a href="https://github.com/Tethi04/voice-assistant-leo" 
+           style="color: #4CAF50; text-decoration: none;">
+           View Full Project on GitHub
+        </a>
+    </p>
+    <p style="font-size: 14px;">
+        🎤 Web Speech API | 🤖 Python Assistant | 🚀 Streamlit Cloud
+    </p>
+    <p style="font-size: 12px; margin-top: 20px; color: #999;">
+        Voice features work best on Chrome/Edge desktop browsers
+    </p>
 </div>
 """, unsafe_allow_html=True)
-
-# Additional JavaScript
-import streamlit.components.v1 as components
-
-components.html("""
-<script>
-// Test microphone permission
-async function testMicrophone() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(track => track.stop());
-        return true;
-    } catch (err) {
-        alert('Please allow microphone access to use voice features.');
-        return false;
-    }
-}
-
-// Add permission check to voice button
-document.getElementById('voiceBtn')?.addEventListener('click', async function(e) {
-    if (!isListening) {
-        const hasPermission = await testMicrophone();
-        if (!hasPermission) {
-            e.preventDefault();
-        }
-    }
-});
-
-// Auto-click voice button on page load if there's a voice command
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('voice_cmd')) {
-        // Highlight that we received a command
-        document.getElementById('result').style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
-    }
-});
-</script>
-""", height=0)
