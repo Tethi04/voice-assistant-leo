@@ -1,4 +1,4 @@
-
+# streamlit_app.py - UPDATED VERSION (No deprecation warnings)
 import streamlit as st
 import sys
 import os
@@ -135,9 +135,9 @@ class VoiceRecognizer {
     }
     
     sendToPython(command) {
-        // Send command to Streamlit via window.postMessage
+        // Send command to Streamlit
         window.parent.postMessage({
-            type: 'STREAMLIT_COMMAND',
+            type: 'LEO_VOICE_COMMAND',
             command: command
         }, '*');
     }
@@ -148,7 +148,6 @@ let voiceRecognizer = null;
 document.addEventListener('DOMContentLoaded', () => {
     voiceRecognizer = new VoiceRecognizer();
     
-    // Add voice button handler
     const voiceBtn = document.getElementById('voiceBtn');
     if (voiceBtn) {
         voiceBtn.addEventListener('click', () => {
@@ -174,7 +173,6 @@ function speakText(text) {
 
 // Expose functions to window
 window.speakText = speakText;
-window.VoiceRecognizer = VoiceRecognizer;
 </script>
 """, unsafe_allow_html=True)
 
@@ -200,24 +198,31 @@ st.markdown("""
 st.title("🎤 Leo Voice Assistant - LIVE Voice Demo")
 st.markdown("**Real voice recognition in your browser!**")
 
-# Check for voice command from JavaScript
+# Listen for voice commands from JavaScript
 import streamlit.components.v1 as components
 
-# Listen for messages from JavaScript
+# JavaScript message listener
 components.html("""
 <script>
-// Listen for messages from voice recognizer
+// Listen for voice commands
 window.addEventListener('message', function(event) {
-    if (event.data.type === 'STREAMLIT_COMMAND') {
-        // Send to Streamlit
-        window.parent.postMessage({
-            type: 'streamlit:setComponentValue',
-            value: event.data.command
-        }, '*');
+    if (event.data.type === 'LEO_VOICE_COMMAND') {
+        // Store command in session storage for Streamlit to read
+        sessionStorage.setItem('leo_voice_command', event.data.command);
+        
+        // Reload the page with the command as a URL parameter
+        const url = new URL(window.location);
+        url.searchParams.set('voice_command', encodeURIComponent(event.data.command));
+        window.location.href = url.toString();
     }
 });
 </script>
 """, height=0)
+
+# Check for voice command in URL parameters
+voice_command = None
+if 'voice_command' in st.query_params:
+    voice_command = st.query_params['voice_command']
 
 # Columns layout
 col1, col2 = st.columns([2, 1])
@@ -241,19 +246,12 @@ with col1:
         - HTTPS connection (Streamlit provides this)
         """)
     
-    # Manual command input (fallback) - FIXED: Use different key
+    # Manual command input
     st.subheader("📝 Type Command (Fallback)")
-    command_input = st.text_input("Or type command manually:", key="manual_input")
+    manual_command = st.text_input("Or type command manually:", key="manual_input")
     
-    # Process command from either voice or manual input
-    command_to_process = ""
-    
-    # Check for voice command via query params
-    query_params = st.experimental_get_query_params()
-    if 'voice_command' in query_params:
-        command_to_process = query_params['voice_command'][0]
-    elif command_input:
-        command_to_process = command_input
+    # Determine which command to process
+    command_to_process = voice_command or manual_command
     
     # Process the command
     if command_to_process:
@@ -301,9 +299,14 @@ with col1:
         except Exception as e:
             st.error(f"Error: {str(e)}")
             st.info("Make sure all dependencies are installed in requirements.txt")
+    
+    # Clear voice command after processing
+    if voice_command:
+        # Clear the URL parameter
+        st.query_params.clear()
 
 with col2:
-    # Quick voice commands - FIXED: Don't use session_state for widget keys
+    # Quick voice commands
     st.subheader("🎯 Quick Voice Commands")
     
     quick_cmds = [
@@ -319,8 +322,8 @@ with col2:
     
     for display_text, cmd_text in quick_cmds:
         if st.button(display_text, key=f"btn_{cmd_text}"):
-            # Set query parameter instead of session state
-            st.experimental_set_query_params(voice_command=cmd_text)
+            # Update query params
+            st.query_params['voice_command'] = cmd_text
             st.rerun()
     
     # Chat history
@@ -384,25 +387,18 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# JavaScript to handle voice
+# Browser support check
 components.html("""
 <script>
-// Check browser support
-function checkVoiceSupport() {
+// Check browser support on load
+document.addEventListener('DOMContentLoaded', function() {
     const voiceSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
-    const ttsSupported = 'speechSynthesis' in window;
-    
     if (!voiceSupported) {
         document.getElementById('voiceStatus').innerHTML = 
             '⚠️ Voice recognition not supported in this browser. Try Chrome.';
         document.getElementById('voiceBtn').disabled = true;
         document.getElementById('voiceBtn').style.opacity = '0.5';
     }
-    
-    return voiceSupported && ttsSupported;
-}
-
-// Initialize on load
-document.addEventListener('DOMContentLoaded', checkVoiceSupport);
+});
 </script>
 """, height=0)
