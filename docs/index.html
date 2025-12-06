@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leo Voice Assistant Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 40px 0; }
+        h1 { font-size: 3em; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; opacity: 0.9; }
+        .demo-area { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin: 20px 0; }
+        .command-input { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 15px; border: none; border-radius: 10px; font-size: 16px; }
+        button { padding: 15px 30px; background: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; }
+        .quick-commands { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
+        .cmd-btn { padding: 10px 20px; background: rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .cmd-btn:hover { background: rgba(255,255,255,0.3); }
+        .response { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-top: 20px; min-height: 100px; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 40px 0; }
+        .feature-card { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; }
+        footer { text-align: center; margin-top: 40px; padding: 20px; opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎤 Leo Voice Assistant</h1>
+            <p class="subtitle">A Python-based voice assistant with offline/online capabilities</p>
+        </header>
+
+        <div class="demo-area">
+            <h2>🔧 Interactive Demo</h2>
+            <p>Try Leo's commands (simulated responses):</p>
+            
+            <div class="command-input">
+                <input type="text" id="commandInput" placeholder="Type a command (e.g., 'What time is it?')">
+                <button onclick="processCommand()">Send</button>
+            </div>
+            
+            <div class="quick-commands">
+                <div class="cmd-btn" onclick="setCommand('Hello Leo')">👋 Hello</div>
+                <div class="cmd-btn" onclick="setCommand('What time is it?')">🕒 Time</div>
+                <div class="cmd-btn" onclick="setCommand('Tell me a joke')">😄 Joke</div>
+                <div class="cmd-btn" onclick="setCommand('Weather in London')">🌤️ Weather</div>
+                <div class="cmd-btn" onclick="setCommand('Latest news')">📰 News</div>
+                <div class="cmd-btn" onclick="setCommand('Open calculator')">🔧 Open App</div>
+                <div class="cmd-btn" onclick="setCommand('Remember buy milk')">📝 Note</div>
+                <div class="cmd-btn" onclick="setCommand('Search Python tutorials')">🔍 Search</div>
+            </div>
+            
+            <div class="response" id="responseArea">
+                <p>Leo's response will appear here...</p>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <h3>🎤 Voice Control</h3>
+                <p>Works with microphone input and text-to-speech output</p>
+            </div>
+            <div class="feature-card">
+                <h3>🌐 Dual Mode</h3>
+                <p>Functions both online and offline for maximum flexibility</p>
+            </div>
+            <div class="feature-card">
+                <h3>🔧 System Integration</h3>
+                <p>Opens applications, searches web, controls system</p>
+            </div>
+            <div class="feature-card">
+                <h3>📝 Smart Features</h3>
+                <p>Notes, reminders, weather, news, jokes, and more</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>🔗 <a href="https://github.com/Tethi04/voice-assistant-leo" style="color: white; text-decoration: underline;">View on GitHub</a></p>
+            <p>This is a simulated demo. Full voice features work in the Python application.</p>
+        </footer>
+    </div>
+
+    <script>
+        const responses = {
+            "hello": "Hello! I'm Leo, your voice assistant. How can I help you today?",
+            "what time is it": `The current time is ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`,
+            "tell me a joke": "Why don't scientists trust atoms? Because they make up everything!",
+            "weather in london": "The temperature in London is 18°C with partly cloudy skies. Humidity is 65%.",
+            "latest news": "Here are the top headlines: 1. Tech breakthrough announced 2. Global markets rise 3. New climate initiative",
+            "open calculator": "Opening calculator application...",
+            "remember buy milk": "I'll remember that: buy milk",
+            "search python tutorials": "Searching the web for Python tutorials...",
+            "what are my notes": "Your notes: buy milk",
+            "exit": "Goodbye! Have a great day!"
+        };
+
+        function setCommand(cmd) {
+            document.getElementById('commandInput').value = cmd;
+        }
+
+        function processCommand() {
+            const input = document.getElementById('commandInput').value.toLowerCase();
+            const responseArea = document.getElementById('responseArea');
+            
+            // Find matching response
+            let response = "I'm not sure how to respond to that. Try 'hello', 'time', 'joke', or 'weather'.";
+            
+            for (const [key, value] of Object.entries(responses)) {
+                if (input.includes(key)) {
+                    response = value;
+                    break;
+                }
+            }
+            
+            // Special case for greetings
+            if (input.includes('hi') || input.includes('hey')) {
+                response = responses['hello'];
+            }
+            
+            // Display response with animation
+            responseArea.innerHTML = `
+                <p><strong>You:</strong> ${document.getElementById('commandInput').value}</p>
+                <p><strong>Leo:</strong> ${response}</p>
+            `;
+            
+            // Clear input
+            document.getElementById('commandInput').value = '';
+            
+            // Add visual feedback
+            responseArea.style.animation = 'none';
+            setTimeout(() => {
+                responseArea.style.animation = 'pulse 0.5s';
+            }, 10);
+        }
+
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.02); }
+                100% { transform: scale(1); }
+            }
+            .response {
+                transition: all 0.3s;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Enter key support
+        document.getElementById('commandInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                processCommand();
+            }
+        });
+    </script>
+</body>
+  </html>
