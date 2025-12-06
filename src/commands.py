@@ -1,4 +1,4 @@
-# src/commands.py
+# src/commands.py - CORRECTED VERSION
 import re
 from src.utils import Utils
 
@@ -22,6 +22,9 @@ class CommandHandler:
     
     def handle_command(self, text):
         """Handle voice commands"""
+        if not text:
+            return "I didn't hear anything. Please try again."
+        
         text = text.lower()
         
         for pattern, handler in self.commands.items():
@@ -30,46 +33,32 @@ class CommandHandler:
         
         return "Sorry, I didn't understand that command. Try 'time', 'weather', or 'news'."
     
-def handle_time(self, text):
-    """Handle time command with timezone info"""
-    from src.utils import Utils
-    
-    # Check if user asked for specific timezone
-    if 'utc' in text.lower():
-        return f"The current UTC time is {Utils.get_time_with_timezone('UTC')}"
-    elif 'london' in text.lower():
-        return f"The time in London is {Utils.get_time_with_timezone('Europe/London')}"
-    elif 'new york' in text.lower() or 'nyc' in text.lower():
-        return f"The time in New York is {Utils.get_time_with_timezone('America/New_York')}"
-    elif 'detailed' in text.lower() or 'full' in text.lower():
-        time_info = Utils.get_detailed_time()
-        return f"""
-        Current Time Details:
-        • Time: {time_info['time_12hr']} ({time_info['time_24hr']})
-        • Date: {time_info['date']}
-        • Day: {time_info['day']}
-        • Timezone: {time_info['timezone']}
-        • UTC Time: {time_info['utc_time']}
-        """
-    else:
+    # FIXED: Added 'self' parameter to all handler methods
+    def handle_time(self, text):
+        """Handle time command"""
         return f"The current time is {Utils.get_time()}"
     
     def handle_date(self, text):
+        """Handle date command"""
         return f"Today is {Utils.get_date()}"
     
     def handle_weather(self, text):
+        """Handle weather command"""
         # Extract city from command
         match = re.search(r'weather in (\w+)', text)
         city = match.group(1) if match else "auto"
         return Utils.get_weather(city)
     
     def handle_news(self, text):
+        """Handle news command"""
         return Utils.get_news()
     
     def handle_joke(self, text):
+        """Handle joke command"""
         return Utils.tell_joke()
     
     def handle_search(self, text):
+        """Handle search command"""
         match = re.search(r'search for (.+)', text)
         if match:
             query = match.group(1)
@@ -77,6 +66,7 @@ def handle_time(self, text):
         return "What would you like me to search for?"
     
     def handle_open_app(self, text):
+        """Handle open app command"""
         match = re.search(r'open (\w+)', text)
         if match:
             app = match.group(1)
@@ -84,6 +74,7 @@ def handle_time(self, text):
         return "Which app would you like to open?"
     
     def handle_notes(self, text):
+        """Handle notes command"""
         match = re.search(r'remember (.+)', text)
         if match:
             note = match.group(1)
@@ -91,17 +82,21 @@ def handle_time(self, text):
             return f"I'll remember that: {note}"
         
         if 'notes' in text and self.notes:
-            return "Here are your notes: " + ", ".join(self.notes)
+            notes_text = ", ".join(self.notes)
+            return f"Here are your notes: {notes_text}"
         
         return "What would you like me to remember?"
     
     def handle_exit(self, text):
+        """Handle exit command"""
         return "exit"
     
     def handle_greeting(self, text):
-        greetings = ["Hello!", "Hi there!", "Hey! How can I help?", "Greetings!"]
+        """Handle greeting command"""
         import random
+        greetings = ["Hello!", "Hi there!", "Hey! How can I help?", "Greetings!"]
         return random.choice(greetings)
     
     def handle_introduction(self, text):
+        """Handle introduction command"""
         return "I'm Leo, your voice-controlled assistant. I can help with time, weather, news, jokes, and more!"
