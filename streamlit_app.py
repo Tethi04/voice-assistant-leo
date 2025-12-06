@@ -1,4 +1,4 @@
-# streamlit_app.py - WITH VOICE FEATURES
+# streamlit_app.py - FIXED VERSION
 import streamlit as st
 import sys
 import os
@@ -257,12 +257,15 @@ with col1:
                 "content": response
             })
             
-            # Display response with voice button
+            # Display response with voice button - FIXED: No backslash in f-string
+            # Escape single quotes properly
+            safe_response = response.replace("'", "&#39;").replace('"', "&quot;")
+            
             st.markdown(f"""
             <div class="response-box">
                 <h4>🤖 Leo's Response:</h4>
                 <p>{response}</p>
-                <button onclick="speakText('{response.replace("'", "\\'")}')" 
+                <button onclick="speakText('{safe_response}')" 
                         style="background: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
                     🔊 Speak Response
                 </button>
@@ -297,20 +300,8 @@ with col2:
     
     for display_text, cmd_text in quick_cmds:
         if st.button(display_text, key=f"quick_{cmd_text}"):
-            # Simulate voice command
-            js_code = f"""
-            <script>
-                // Update input
-                const input = document.querySelector('input[data-testid="stCommandInput"]');
-                if (input) {{
-                    input.value = "{cmd_text}";
-                    input.dispatchEvent(new Event('input', {{bubbles: true}}));
-                }}
-                // Speak the command
-                speakText("{cmd_text}");
-            </script>
-            """
-            st.components.v1.html(js_code, height=0)
+            # Use session state instead of JavaScript injection
+            st.session_state.command_input = cmd_text
             st.rerun()
     
     # Chat history
