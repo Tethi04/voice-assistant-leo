@@ -16,6 +16,10 @@
 
 </div>
 
+## Online link (without voice):
+message based using HTML
+https://tethi04.github.io/voice-assistant-leo/
+
 ## ✨ Features
 
 ### 🟢 **Always Works (Offline)**
