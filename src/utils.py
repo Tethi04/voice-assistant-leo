@@ -10,11 +10,18 @@ import json
 from src.config import Config
 
 class Utils:
+    
     @staticmethod
     def get_time():
-        """Get current time"""
-        now = datetime.datetime.now()
-        return now.strftime("%I:%M %p")
+    """Get current time - simplified for Streamlit"""
+    # For Streamlit Cloud, show India time (adjust as needed)
+      from datetime import datetime, timedelta
+    
+    # Streamlit servers are UTC, add 5.5 hours for India time
+        utc_time = datetime.utcnow()
+          india_time = utc_time + timedelta(hours=5, minutes=30)
+    
+    return india_time.strftime("%I:%M %p IST")  # Shows: 02:30 PM IST
     
     @staticmethod
     def get_date():
