@@ -1,4 +1,4 @@
-# src/utils.py
+# src/utils.py - UPDATED WITH PROPER TIMEZONE
 import datetime
 import random
 import requests
@@ -7,27 +7,43 @@ import webbrowser
 import os
 import sys
 import json
+import pytz  # Add this import
 from src.config import Config
 
 class Utils:
-    
     @staticmethod
     def get_time():
-    """Get current time - simplified for Streamlit"""
-    # For Streamlit Cloud, show India time (adjust as needed)
-      from datetime import datetime, timedelta
-    
-    # Streamlit servers are UTC, add 5.5 hours for India time
-        utc_time = datetime.utcnow()
-          india_time = utc_time + timedelta(hours=5, minutes=30)
-    
-    return india_time.strftime("%I:%M %p IST")  # Shows: 02:30 PM IST
+        """Get current time with timezone support"""
+        try:
+            # Try to get user's local timezone from browser (for web)
+            # For Streamlit Cloud, default to UTC or user's preferred timezone
+            # You can change 'Asia/Kolkata' to your timezone
+            user_timezone = pytz.timezone('Asia/Kolkata')  # India time
+            
+            # Get current time in UTC
+            utc_now = datetime.datetime.now(pytz.UTC)
+            
+            # Convert to user's timezone
+            local_time = utc_now.astimezone(user_timezone)
+            
+            return local_time.strftime("%I:%M %p")  # 12-hour format with AM/PM
+            
+        except:
+            # Fallback to server time
+            now = datetime.datetime.now()
+            return now.strftime("%I:%M %p")
     
     @staticmethod
     def get_date():
-        """Get current date"""
-        now = datetime.datetime.now()
-        return now.strftime("%B %d, %Y")
+        """Get current date with timezone support"""
+        try:
+            user_timezone = pytz.timezone('Asia/Kolkata')
+            utc_now = datetime.datetime.now(pytz.UTC)
+            local_date = utc_now.astimezone(user_timezone)
+            return local_date.strftime("%B %d, %Y")  # Month Day, Year
+        except:
+            now = datetime.datetime.now()
+            return now.strftime("%B %d, %Y")
     
     @staticmethod
     def get_weather(city="auto"):
@@ -80,7 +96,12 @@ class Utils:
             "Why did the scarecrow win an award? He was outstanding in his field!",
             "I told my wife she was drawing her eyebrows too high. She looked surprised.",
             "Why don't eggs tell jokes? They'd crack each other up!",
-            "What do you call fake spaghetti? An impasta!"
+            "What do you call fake spaghetti? An impasta!",
+            "Why did the computer go to the doctor? It had a virus!",
+            "What do you call a bear with no teeth? A gummy bear!",
+            "Why don't skeletons fight each other? They don't have the guts!",
+            "What do you call a sleeping dinosaur? A dino-snore!",
+            "Why did the tomato turn red? Because it saw the salad dressing!"
         ]
         return random.choice(jokes)
     
@@ -119,3 +140,40 @@ class Utils:
                 return f"Opening {app_name}"
         
         return f"Sorry, I don't know how to open {app_name}"
+    
+    @staticmethod
+    def get_time_with_timezone(timezone='Asia/Kolkata'):
+        """Get time for specific timezone"""
+        try:
+            tz = pytz.timezone(timezone)
+            current_time = datetime.datetime.now(tz)
+            return current_time.strftime("%I:%M %p")
+        except:
+            return Utils.get_time()
+    
+    @staticmethod
+    def get_detailed_time():
+        """Get detailed time information"""
+        try:
+            user_timezone = pytz.timezone('Asia/Kolkata')
+            utc_now = datetime.datetime.now(pytz.UTC)
+            local_time = utc_now.astimezone(user_timezone)
+            
+            return {
+                'time_12hr': local_time.strftime("%I:%M %p"),
+                'time_24hr': local_time.strftime("%H:%M"),
+                'date': local_time.strftime("%B %d, %Y"),
+                'day': local_time.strftime("%A"),
+                'timezone': str(user_timezone),
+                'utc_time': utc_now.strftime("%H:%M UTC")
+            }
+        except Exception as e:
+            now = datetime.datetime.now()
+            return {
+                'time_12hr': now.strftime("%I:%M %p"),
+                'time_24hr': now.strftime("%H:%M"),
+                'date': now.strftime("%B %d, %Y"),
+                'day': now.strftime("%A"),
+                'timezone': 'Local',
+                'utc_time': 'N/A'
+            }
