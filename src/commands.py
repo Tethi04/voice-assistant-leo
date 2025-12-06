@@ -30,7 +30,28 @@ class CommandHandler:
         
         return "Sorry, I didn't understand that command. Try 'time', 'weather', or 'news'."
     
-    def handle_time(self, text):
+def handle_time(self, text):
+    """Handle time command with timezone info"""
+    from src.utils import Utils
+    
+    # Check if user asked for specific timezone
+    if 'utc' in text.lower():
+        return f"The current UTC time is {Utils.get_time_with_timezone('UTC')}"
+    elif 'london' in text.lower():
+        return f"The time in London is {Utils.get_time_with_timezone('Europe/London')}"
+    elif 'new york' in text.lower() or 'nyc' in text.lower():
+        return f"The time in New York is {Utils.get_time_with_timezone('America/New_York')}"
+    elif 'detailed' in text.lower() or 'full' in text.lower():
+        time_info = Utils.get_detailed_time()
+        return f"""
+        Current Time Details:
+        • Time: {time_info['time_12hr']} ({time_info['time_24hr']})
+        • Date: {time_info['date']}
+        • Day: {time_info['day']}
+        • Timezone: {time_info['timezone']}
+        • UTC Time: {time_info['utc_time']}
+        """
+    else:
         return f"The current time is {Utils.get_time()}"
     
     def handle_date(self, text):
