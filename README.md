@@ -1,4 +1,4 @@
-# 🎤 Leo - Voice Controlled Assistant
+# **🎤 Leo - Voice Controlled Assistant**
 
 <div align="center">
 
@@ -6,540 +6,444 @@
 ![Offline](https://img.shields.io/badge/Offline-Supported-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey)
+![Web](https://img.shields.io/badge/Web-Demo-9cf)
 
-**A smart voice assistant that works both online and offline**
+**A smart voice assistant that works both online and offline with web demo support**
 
-[Features](#-features) • [Installation](#🚀-installation) • [Usage](#🎯-usage) • [How It Works](#🏗️-how-it-works) • [License](#📄-license)
-
-<img src="https://img.icons8.com/color/96/000000/microphone--v1.png" width="100" alt="Voice Assistant">
+[Live Web Demo](https://voice-assistant-leo-bte3ynpwrbtf3seehdzhjc.streamlit.app/) •
+[GitHub Pages](https://tethi04.github.io/voice-assistant-leo/) •
+[GitHub Repo](https://github.com/Tethi04/voice-assistant-leo)
 
 </div>
 
-## Online link (without voice):
-message based using HTML
-https://tethi04.github.io/voice-assistant-leo/
+## ✨ **Features**
 
-## ✨ Features
+### 🎤 **Voice & Audio Features**
+- **Real-time Voice Recognition** using Web Speech API (browser) and SpeechRecognition (Python)
+- **Text-to-Speech Responses** with adjustable voice settings
+- **Microphone Integration** for seamless voice commands
+- **Dual Mode**: Works both online and offline
 
-### 🟢 **Always Works (Offline)**
-- **🎙️ Voice Recognition** - Basic commands work without internet using CMU Sphinx
-- **🗣️ Text-to-Speech** - Local speech synthesis using pyttsx3
-- **🕒 Time & Date** - Get current time and date
-- **😄 Jokes** - Random jokes from a built-in collection
-- **📝 Notes** - Remember and recall notes locally
-- **🖥️ App Control** - Open calculator, notepad, and other applications
-- **🔍 Basic Commands** - Greetings, help, exit commands
+### 🌐 **Web & API Integration**
+- **Live Weather Updates** using OpenWeatherMap API
+- **Latest News Headlines** via NewsAPI
+- **Web Search** functionality
+- **Streamlit Web Demo** with full voice support
 
-### 🌐 **Online Features (Need API Keys)**
-- **🌤️ Weather Updates** - Real-time weather for any city worldwide
-- **📰 Live News** - Top headlines from global news sources
-- **🔍 Web Search** - Google search integration
-- **🎤 Enhanced Recognition** - Better speech-to-text with Google's API
-- **📍 Auto Location** - Automatic city detection for weather
+### 💾 **Productivity Tools**
+- **Smart Notes System** - Remember and retrieve important information
+- **App Control** - Open calculator, notepad, and other applications
+- **System Integration** - Works with your operating system
+- **Time & Date** - Always accurate with timezone support
 
-### 🎯 **Key Highlights**
-- **Dual Mode Operation** - Seamlessly switches between offline/online modes
-- **Privacy Focused** - Works locally without sending data to cloud
-- **Cross-Platform** - Runs on Windows, macOS, and Linux
-- **Extensible** - Easy to add new commands and features
-- **User-Friendly** - Simple voice commands, no complex syntax required
+### 🔧 **Technical Capabilities**
+- **Cross-Platform** - Windows, macOS, Linux compatible
+- **Python 3.8-3.13 Support** with compatibility fixes
+- **Modular Architecture** - Easy to extend and customize
+- **Error Handling** - Graceful fallbacks and user-friendly messages
 
-## 🚀 Installation
+## 🚀 **Quick Start**
 
-### **Prerequisites**
-- **Python 3.8 or higher**
-- **Microphone** (built-in or external)
-- **Speakers** or headphones
-- **Internet connection** (for online features only)
+### **Option 1: Web Demo (No Installation)**
+Visit our live demos:
+- **🎤 Interactive Voice Demo**: [Streamlit App](https://voice-assistant-leo-bte3ynpwrbtf3seehdzhjc.streamlit.app/)
+- **📱 Web Interface**: [GitHub Pages](https://tethi04.github.io/voice-assistant-leo/)
 
-### **Step-by-Step Setup**
+### **Option 2: Local Installation**
 
-#### 1. Clone the Repository
-```bash
-git clone https://github.com/YOUR_USERNAME/voice-assistant-leo.git
+#### **Prerequisites**
+- Python 3.8, 3.9, 3.10, or 3.11 (Recommended: Python 3.10)
+- Microphone (for voice features)
+- Internet connection (for online features)
+
+#### **Installation Steps**
+
+**Windows:**
+```cmd
+# 1. Clone the repository
+git clone https://github.com/Tethi04/voice-assistant-leo.git
 cd voice-assistant-leo
-```
 
-#### 2. Create Virtual Environment (Recommended)
-```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
-
-# macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
-```
-
-#### 3. Install Dependencies
-```bash
+# 2. Install dependencies
 pip install -r requirements.txt
-```
 
-#### 4. Install PortAudio (For Microphone)
-- **Windows**: Already included with PyAudio
-- **macOS**: 
-  ```bash
-  brew install portaudio
-  ```
-- **Ubuntu/Debian**:
-  ```bash
-  sudo apt-get install portaudio19-dev python3-pyaudio
-  ```
-- **Fedora**:
-  ```bash
-  sudo dnf install portaudio-devel python3-pyaudio
-  ```
+# 3. For microphone support (Windows)
+pip install pipwin
+pipwin install pyaudio
 
-#### 5. Configure API Keys (Optional - for online features)
-```bash
-# 1. Copy the template file
-cp config/api_keys.template .env
-
-# 2. Edit .env with your favorite text editor
-# 3. Add your API keys (see next section)
-```
-
-## 🔑 Getting API Keys (For Online Features)
-
-### **Weather API - OpenWeatherMap**
-1. Visit [OpenWeatherMap](https://openweathermap.org/api)
-2. Click "Sign Up" for free account
-3. Confirm your email
-4. Go to "API Keys" section
-5. Copy your default key or create a new one
-6. Add to `.env`:
-   ```env
-   OPENWEATHER_KEY=your_actual_key_here
-   ```
-
-### **News API - NewsAPI**
-1. Visit [NewsAPI](https://newsapi.org/)
-2. Click "Get API Key"
-3. Register with your email
-4. Verify your email address
-5. Copy your API key from dashboard
-6. Add to `.env`:
-   ```env
-   NEWSAPI_KEY=your_actual_key_here
-   ```
-
-### **Without API Keys**
-If you don't add API keys, Leo will still work with all offline features. You'll see a warning message but can continue using:
-- Time/Date
-- Jokes
-- App control
-- Notes
-- Basic voice commands
-
-## 🎯 Usage
-
-### **Starting Leo**
-```bash
+# 4. Run Leo
 python main.py
 ```
 
-You'll see this welcome screen:
-```
-=====================================
-    Voice Assistant: Leo
-=====================================
-
-Commands you can try:
-- "What time is it?"
-- "What's the weather?"
-- "Tell me a joke"
-- "What's the news?"
-- "Search for Python tutorials"
-- "Open calculator"
-- "Remember to buy milk"
-- "Exit"
-
-Press Ctrl+C to stop the assistant.
-```
-
-Leo will greet you: *"Hello! I'm Leo, your voice assistant. How can I help you today?"*
-
-### **Voice Commands - What You Can Say**
-
-#### **📅 Time & Information**
-- "What time is it?"
-- "What date is it?"
-- "What day is today?"
-- "What's the current time?"
-
-#### **😄 Entertainment**
-- "Tell me a joke"
-- "Say something funny"
-- "Make me laugh"
-
-#### **🌤️ Weather** (requires internet + API key)
-- "What's the weather?"
-- "How's the weather today?"
-- "Weather in London"
-- "Temperature in New York"
-- "Is it raining?"
-
-#### **📰 News** (requires internet + API key)
-- "What's the news?"
-- "Tell me headlines"
-- "Latest news"
-- "News update"
-
-#### **🔍 Web & Apps**
-- "Search for Python tutorials"
-- "Google machine learning"
-- "Open calculator"
-- "Open notepad"
-- "Open Chrome"
-
-#### **💾 Productivity**
-- "Remember to buy milk"
-- "Note: Meeting at 3 PM"
-- "What are my notes?"
-- "Show me my reminders"
-
-#### **🛑 Control**
-- "Exit"
-- "Stop"
-- "Goodbye"
-- "Quit"
-- "Bye Leo"
-
-#### **🎙️ Basic Interaction**
-- "Hello Leo"
-- "Hi there"
-- "How are you?"
-- "What can you do?"
-- "Help me"
-- "Your name"
-
-## 🏗️ How It Works
-
-### **🔧 Technical Architecture**
-```
-┌─────────────────────────────────────────┐
-│           Voice Input                   │
-│           (Microphone)                  │
-└──────────────────┬──────────────────────┘
-                   ▼
-┌─────────────────────────────────────────┐
-│      Speech Recognition                 │
-│  ┌─────────────────────┐                │
-│  │   Offline: CMU      │                │
-│  │     Sphinx          │                │
-│  └─────────────────────┘                │
-│  ┌─────────────────────┐                │
-│  │   Online: Google    │  ← Fallback    │
-│  │    Speech API       │                │
-│  └─────────────────────┘                │
-└──────────────────┬──────────────────────┘
-                   ▼
-┌─────────────────────────────────────────┐
-│     Command Processing                  │
-│  • Pattern Matching                     │
-│  • Intent Recognition                   │
-│  • Context Handling                     │
-└──────────────────┬──────────────────────┘
-                   ▼
-┌─────────────────────────────────────────┐
-│     Service Integration                 │
-│  • Local Services (Time, Apps)          │
-│  • API Calls (Weather, News)            │
-│  • Web Services (Search)                │
-└──────────────────┬──────────────────────┘
-                   ▼
-┌─────────────────────────────────────────┐
-│     Text-to-Speech                      │
-│  • pyttsx3 (Offline)                    │
-│  • Female/Male Voice Selection          │
-│  • Speed/Volume Control                 │
-└──────────────────┬──────────────────────┘
-                   ▼
-┌─────────────────────────────────────────┐
-│        Voice Output                     │
-│        (Speakers)                       │
-└─────────────────────────────────────────┘
-```
-
-### **📡 Offline vs Online Mode** 
-
-| Feature | Offline Mode | Online Mode | Requirements |
-|---------|--------------|-------------|--------------|
-| **Speech Recognition** | ✅ CMU Sphinx | ✅ Google Speech API | Internet for online |
-| **Text-to-Speech** | ✅ pyttsx3 | ✅ pyttsx3 | None |
-| **Time/Date** | ✅ System time | ✅ System time | None |
-| **Weather** | ❌ Not available | ✅ OpenWeatherMap API | API Key + Internet |
-| **News** | ❌ Not available | ✅ NewsAPI | API Key + Internet |
-| **Web Search** | ❌ Not available | ✅ Google Search | Internet |
-| **Jokes** | ✅ Local database | ✅ Local database | None |
-| **App Control** | ✅ OS commands | ✅ OS commands | None |
-| **Notes** | ✅ Local storage | ✅ Local storage | None |
-
-### **🔐 Security & Privacy**
-- **No Data Storage**: Your voice commands are processed locally and not stored
-- **Optional Online Features**: You control what goes online
-- **API Key Protection**: Keys stored in `.env` file (not in code)
-- **Local Processing**: Most features work without internet connection
-- **Transparent Operation**: You always know when Leo is accessing online services
-
-## 🛠️ Project Structure
-
-### **How GitHub Shows:**
-```
-voice-assistant-leo/              ← Public Repository
-├── .gitignore                    ← Hides sensitive files
-├── README.md                     ← This documentation
-├── requirements.txt              ← Python dependencies
-├── main.py                       ← Main entry point
-├── src/                          ← Source code
-│   ├── __init__.py
-│   ├── assistant.py              ← Main assistant class
-│   ├── commands.py               ← Command handlers
-│   ├── utils.py                  ← Utility functions
-│   └── config.py                 ← Configuration loader
-├── config/                       ← Configuration templates
-│   └── api_keys.template         ← Template for API keys
-├── tests/                        ← Test files
-│   └── test_assistant.py         ← Unit tests
-└── images/                       ← Screenshots (optional)
-```
-
-### **How Your Computer Shows:**
-```
-voice-assistant-leo/              ← Your local folder
-├── .env                          ← YOUR API KEYS (NOT on GitHub!)
-├── .gitignore                    ← From GitHub
-├── README.md                     ← From GitHub
-├── requirements.txt              ← From GitHub
-├── main.py                       ← From GitHub
-├── src/                          ← From GitHub
-│   ├── __init__.py
-│   ├── assistant.py
-│   ├── commands.py
-│   ├── utils.py
-│   └── config.py
-├── config/
-│   └── api_keys.template
-├── tests/
-│   └── test_assistant.py
-├── venv/                         ← Virtual environment (local)
-├── __pycache__/                  ← Python cache (local)
-└── notes.txt                     ← Your personal notes (auto-created)
-```
-
-**Key Difference**: Your computer has `.env` with real API keys, `venv/` folder, and cache files that are NOT uploaded to GitHub.
-
-## 🧪 Testing
-
-### **Run Basic Tests**
+**macOS/Linux:**
 ```bash
-# From project root
-python -m pytest tests/
+# 1. Clone the repository
+git clone https://github.com/Tethi04/voice-assistant-leo.git
+cd voice-assistant-leo
 
-# Or run specific test file
-python tests/test_assistant.py
+# 2. Install dependencies
+pip3 install -r requirements.txt
+
+# 3. Install audio dependencies
+# macOS:
+brew install portaudio
+# Linux (Ubuntu/Debian):
+sudo apt-get install portaudio19-dev python3-pyaudio
+
+# 4. Run Leo
+python3 main.py
 ```
 
-### **Test Specific Features**
+### **Option 3: Using Virtual Environment (Recommended)**
 ```bash
-# Test offline features
-python -c "from src.commands import CommandHandler; h = CommandHandler(); print(h.handle_command('what time is it'))"
+# Create virtual environment
+python -m venv venv
 
-# Test joke system
-python -c "from src.utils import Utils; print(Utils.tell_joke())"
+# Activate it
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
 
-# Test weather function (requires API key)
-python -c "from src.utils import Utils; print(Utils.get_weather('London'))"
+# Install dependencies
+pip install -r requirements.txt
+
+# Run Leo
+python main.py
 ```
 
-## 🔧 Troubleshooting
+## 🎯 **Voice Commands**
+
+### **📅 Time & Information**
+- `"Hello Leo"` - Greeting
+- `"What time is it?"` - Current time with timezone
+- `"What's the date?"` - Today's date
+- `"What can you do?"` - List available commands
+
+### 😄 **Entertainment**
+- `"Tell me a joke"` - Random jokes
+- `"Another joke"` - More humor
+- `"Make me laugh"` - Funny responses
+
+### 🌤️ **Weather (Requires API Key)**
+- `"What's the weather?"` - Your location weather
+- `"Weather in London"` - Specific city weather
+- `"Temperature in Delhi"` - Temperature only
+- `"Is it raining?"` - Precipitation check
+
+### 📰 **News (Requires API Key)**
+- `"What's the news?"` - Top 5 headlines
+- `"Latest news"` - Recent updates
+- `"Breaking news"` - Urgent news
+
+### 🔍 **Web & Apps**
+- `"Search for Python tutorials"` - Google search
+- `"Open calculator"` - Opens calculator app
+- `"Open notepad"` - Opens text editor
+- `"Open browser"` - Launches web browser
+
+### 💾 **Productivity**
+- `"Remember buy milk"` - Add note
+- `"What are my notes?"` - View all notes
+- `"Note: meeting at 3 PM"` - Quick note taking
+- `"Remind me to call mom"` - Set reminder
+
+### 🛑 **Control**
+- `"Stop listening"` - Pause assistant
+- `"Go to sleep"` - Enter sleep mode
+- `"Wake up"` - Resume listening
+- `"Exit"` or `"Goodbye"` - Shut down
+
+## 🔧 **Configuration**
+
+### **API Keys Setup (For Online Features)**
+
+1. **Get Free API Keys:**
+   - **Weather API**: [OpenWeatherMap](https://openweathermap.org/api) - Free tier available
+   - **News API**: [NewsAPI](https://newsapi.org/register) - Free tier available
+
+2. **Create `.env` file in project root:**
+```env
+OPENWEATHER_KEY=your_actual_openweather_api_key_here
+NEWSAPI_KEY=your_actual_newsapi_key_here
+```
+
+**Note:** The `.env` file is for local use only and is excluded from Git via `.gitignore`
+
+### **Python Version Compatibility**
+- ✅ **Recommended**: Python 3.10 or 3.11
+- ✅ **Works**: Python 3.8, 3.9
+- ⚠️ **Limited**: Python 3.12 (some audio issues)
+- ❌ **Not Recommended**: Python 3.13 (audio module compatibility issues)
+
+## 🏗️ **Project Structure**
+
+```
+voice-assistant-leo/
+├── .gitignore                    # Git ignore rules
+├── LICENSE                       # MIT License
+├── README.md                     # This documentation
+├── requirements.txt              # Python dependencies
+├── main.py                       # Main entry point (local app)
+├── streamlit_app.py              # Web demo (Streamlit)
+├── web_demo.html                 # Static web demo
+├── SETUP_GUIDE.md                # Detailed setup guide
+│
+├── src/                          # Source code
+│   ├── __init__.py
+│   ├── assistant.py              # Main assistant class
+│   ├── commands.py               # Command handlers
+│   ├── utils.py                  # Utility functions (time, weather, news, jokes)
+│   └── config.py                 # Configuration loader with Python 3.13 fixes
+│
+├── config/                       # Configuration
+│   └── api_keys.template         # API key template
+│
+└── tests/                        # Test files
+    └── test_assistant.py         # Unit tests
+```
+
+## 🌐 **Web Deployment**
+
+### **Streamlit Cloud Deployment**
+1. **Requirements**: `streamlit_app.py` and `requirements.txt`
+2. **Auto-deployment**: Push to GitHub → Streamlit detects changes
+3. **Live at**: `https://voice-assistant-leo-bte3ynpwrbtf3seehdzhjc.streamlit.app/`
+
+### **GitHub Pages Deployment**
+1. **Static demo** available at: `https://tethi04.github.io/voice-assistant-leo/`
+2. **No Python required** - Pure HTML/CSS/JavaScript
+3. **Simulated voice experience** for demonstration
+
+## 🔍 **Troubleshooting**
 
 ### **Common Issues & Solutions**
 
-#### **"Microphone not found"**
-**Solution:**
-1. Check microphone connection
-2. Test microphone in system settings
-3. On Windows: Run as Administrator
-4. On Linux: Add user to audio group:
-   ```bash
-   sudo usermod -a -G audio $USER
-   ```
-
-#### **"Speech recognition not working"**
-**Solution:**
-1. Check internet connection (for online mode)
-2. Speak clearly and slowly
-3. Reduce background noise
-4. Adjust microphone sensitivity in system settings
-5. Try offline mode: Speak louder and clearer
-
-#### **"Weather/News not working"**
-**Solution:**
-1. Check if `.env` file exists
-2. Verify API keys are correct
-3. Check internet connection
-4. Test API keys directly:
-   ```bash
-   curl "http://api.openweathermap.org/data/2.5/weather?q=London&appid=YOUR_KEY"
-   ```
-
-#### **"Text-to-speech not working"**
-**Solution:**
-1. Check speaker volume
-2. Test system sounds
-3. On Linux, install espeak:
-   ```bash
-   sudo apt-get install espeak
-   ```
-4. On macOS, ensure speech synthesis is enabled
-
-#### **"Module not found errors"**
-**Solution:**
+#### **"Microphone not found/working"**
 ```bash
-# Reinstall requirements 
+# Test microphone
+python -c "import speech_recognition as sr; print('Microphones:', sr.Microphone.list_microphone_names())"
+
+# Windows specific:
+# 1. Check Windows microphone settings
+# 2. Give Python microphone permission
+# 3. Run as Administrator
+```
+
+#### **"Module not found" Errors**
+```bash
+# Reinstall requirements
 pip install --upgrade -r requirements.txt
 
-# Or install missing modules individually
-pip install speechrecognition pyttsx3 python-dotenv requests beautifulsoup4
+# Install individually if needed
+pip install SpeechRecognition==3.10.0 pyttsx3==2.90 python-dotenv==1.0.0 requests==2.31.0 beautifulsoup4==4.12.2
 ```
 
-#### **"Assistant not responding"**
-**Solution:**
-1. Check if you're in listening mode (says "Listening...")
-2. Wait for the beep/indicator
-3. Speak immediately after "Listening..." appears
-4. Increase timeout in `src/config.py`:
-   ```python
-   COMMAND_TIMEOUT = 10  # Increase from 5 to 10 seconds
-   ```
+#### **"PyAudio installation failed" (Windows)**
+```cmd
+# Use pipwin
+pip install pipwin
+pipwin install pyaudio
 
-## 🚀 Deployment
+# OR download wheel manually:
+# https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
+```
 
-### **For Personal Use**
-1. Clone repository to your computer
-2. Create `.env` with your API keys
-3. Create desktop shortcut to `main.py`
-4. (Optional) Schedule to run at startup
+#### **Python 3.13 Users**
+```python
+# Add this fix to src/config.py at the top:
+import sys
+import types
+if sys.version_info >= (3, 13):
+    if 'aifc' not in sys.modules:
+        aifc = types.ModuleType('aifc')
+        aifc.Error = Exception
+        sys.modules['aifc'] = aifc
+```
 
-### **For Development**
+#### **"Weather/News not working"**
+- Check `.env` file exists in project root
+- Verify API keys are correct and active
+- Check internet connection
+- Test API keys directly:
+  ```bash
+  curl "http://api.openweathermap.org/data/2.5/weather?q=London&appid=YOUR_KEY"
+  ```
+
+## 📱 **Usage Examples**
+
+### **Local Application**
 ```bash
-# Development setup
-git clone https://github.com/YOUR_USERNAME/voice-assistant-leo.git
-cd voice-assistant-leo
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-pip install -r requirements.txt
-pip install -r requirements-dev.txt  # if you have dev requirements
+# Run the desktop application
+python main.py
+
+# Expected output:
+# =====================================
+#     Voice Assistant: Leo
+# =====================================
+# 
+# Commands you can try:
+# - "What time is it?"
+# - "Tell me a joke"
+# - "What's the weather?"
+# - "What's the news?"
+# - "Open calculator"
+# - "Remember to buy milk"
+# - "Exit"
+# 
+# Press Ctrl+C to stop the assistant.
+# 
+# Listening... (speak now)
 ```
 
-### **For Production**
-1. Use virtual environment
-2. Set up proper logging
-3. Create startup script
-4. Configure as a service:
-   - **Windows**: Task Scheduler
-   - **Linux**: systemd service
-   - **macOS**: launchd
+### **Web Demo**
+1. Visit: https://voice-assistant-leo-bte3ynpwrbtf3seehdzhjc.streamlit.app/
+2. Click **🎤 Start Voice Command** (allow microphone access)
+3. Speak any command
+4. Click **🔊 Speak Response** to hear Leo's reply
 
-## 🤝 Contributing
+## 🧪 **Testing**
 
-We welcome contributions! Here's how:
+### **Run Tests**
+```bash
+# Basic tests
+python tests/test_assistant.py
+
+# Test specific functionality
+python -c "
+from src.commands import CommandHandler
+h = CommandHandler()
+print('Test 1:', h.handle_command('hello'))
+print('Test 2:', h.handle_command('what time is it'))
+print('Test 3:', h.handle_command('tell me a joke'))
+"
+```
+
+### **Verification Script**
+```bash
+# Complete verification
+python -c "
+import sys
+print('='*60)
+print('LEO ASSISTANT VERIFICATION')
+print('='*60)
+print(f'Python: {sys.version[:6]}')
+
+# Check imports
+modules = ['speech_recognition', 'pyttsx3', 'requests', 'dotenv']
+for m in modules:
+    try:
+        __import__(m)
+        print(f'✅ {m}')
+    except:
+        print(f'❌ {m}')
+
+# Check Leo modules
+try:
+    from src.assistant import VoiceAssistant
+    print('✅ Leo Assistant - OK')
+except Exception as e:
+    print(f'❌ Leo Assistant: {e}')
+
+print('='*60)
+"
+```
+
+## 🤝 **Contributing**
+
+We welcome contributions! Here's how you can help:
 
 1. **Fork** the repository
-2. **Create a branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes**
-4. **Test thoroughly**: `python -m pytest tests/`
-5. **Commit**: `git commit -m 'Add amazing feature'`
-6. **Push**: `git push origin feature/amazing-feature`
-7. **Open a Pull Request**
+2. **Create a branch**: `git checkout -b feature/your-feature`
+3. **Make changes** and commit: `git commit -m 'Add feature'`
+4. **Push**: `git push origin feature/your-feature`
+5. **Open Pull Request**
 
 ### **Adding New Commands**
-1. Edit `src/commands.py`
-2. Add pattern to `self.commands` dictionary
-3. Create handler method
-4. Add to `src/utils.py` if needed
-5. Update README.md documentation
-6. Add tests in `tests/test_assistant.py`
+Edit `src/commands.py`:
+```python
+# Add to commands dictionary
+self.commands[r'pattern|keywords'] = self.handle_new_command
+
+# Define handler
+def handle_new_command(self, text):
+    return "Response for new command"
+```
 
 ### **Reporting Issues**
-- Use GitHub Issues
-- Include Python version
-- Include operating system
-- Describe steps to reproduce
-- Include error messages
+- **Bug reports**: Include steps to reproduce
+- **Feature requests**: Describe use case and benefit
+- **Questions**: Ask in GitHub Discussions
 
-## 📄 License
+## 📄 **License**
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-### **What MIT License Means:**
-- ✅ **Free to use** for personal and commercial projects
-- ✅ **Freedom to modify** and distribute
-- ✅ **Can be used privately**
-- ✅ **No warranty** provided
-- ✅ **Must include original license** in copies
+```
+MIT License
 
-**You are free to:**
-- Use Leo for your internship project
-- Modify and improve the code
-- Share with classmates
-- Use in commercial applications
+Copyright (c) 2025 Tethi04
 
-**You should:**
-- Give credit to original authors
-- Include the MIT license in distributions
-- State significant changes made
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-## 🙏 Acknowledgments
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-### **Libraries Used**
-- **[SpeechRecognition](https://github.com/Uberi/speech_recognition)** - Speech-to-text functionality
-- **[pyttsx3](https://github.com/nateshmbhat/pyttsx3)** - Offline text-to-speech
-- **[python-dotenv](https://github.com/theskumar/python-dotenv)** - Environment variable management
-- **[Requests](https://github.com/psf/requests)** - HTTP API calls
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
-### **APIs Used**
+## 🙏 **Acknowledgments**
+
+### **Libraries & APIs Used**
+- **[SpeechRecognition](https://github.com/Uberi/speech_recognition)** - Voice recognition
+- **[pyttsx3](https://github.com/nateshmbhat/pyttsx3)** - Text-to-speech
+- **[Streamlit](https://streamlit.io/)** - Web app framework
 - **[OpenWeatherMap](https://openweathermap.org/)** - Weather data
 - **[NewsAPI](https://newsapi.org/)** - News headlines
-- **[Google Speech API](https://cloud.google.com/speech-to-text)** - Online speech recognition
+- **[Requests](https://github.com/psf/requests)** - HTTP requests
 
 ### **Inspiration**
-- Inspired by virtual assistants like Cortana, Siri, and Alexa
-- Built for learning Python and AI/ML concepts
-- Designed to be accessible for beginners
+- Inspired by personal assistants like Siri, Alexa, and Google Assistant
+- Built for educational purposes and practical utility
+- Designed to be lightweight and privacy-focused
 
-### **Special Thanks**
-- To the open-source community for amazing tools
-- To Python developers worldwide
-- To internship program mentors and guides
+## 📞 **Support & Contact**
 
-## 📞 Support & Contact
+### **Need Help?**
+- **📖 Documentation**: Check this README and [SETUP_GUIDE.md](SETUP_GUIDE.md)
+- **🐛 Bug Reports**: [GitHub Issues](https://github.com/Tethi04/voice-assistant-leo/issues)
+- **💬 Discussions**: [GitHub Discussions](https://github.com/Tethi04/voice-assistant-leo/discussions)
 
-Having trouble with Leo?
+### **Quick Support Commands**
+```bash
+# Diagnostic check
+python -c "
+import sys
+print('Python:', sys.version[:6])
+import speech_recognition as sr
+print('Microphones:', len(sr.Microphone.list_microphone_names()))
+import pyttsx3
+print('TTS Voices:', len(pyttsx3.init().getProperty('voices')))
+"
+```
 
-**Quick Help:**
-1. Check the [Troubleshooting](#🔧-troubleshooting) section
-2. Look for similar issues in [GitHub Issues](https://github.com/Tethi04/voice-assistant-leo/issues)
-3. Search the error message online
+### **Live Demos**
+- **🎤 Interactive Voice Demo**: [Streamlit App](https://voice-assistant-leo-bte3ynpwrbtf3seehdzhjc.streamlit.app/)
+- **📱 Web Interface**: [GitHub Pages](https://tethi04.github.io/voice-assistant-leo/)
+- **💾 Source Code**: [GitHub Repository](https://github.com/Tethi04/voice-assistant-leo)
 
-**Need More Help?**
-- **Email**: inyunpinky1994@gmail.com
-- **GitHub**: [Create an Issue](https://github.com/Tethi04/voice-assistant-leo/issues/new)
-- **Documentation**: Read this README thoroughly
-
-**Before asking for help:**
-- [ ] Check Python version (`python --version`)
-- [ ] Check if microphone is working
-- [ ] Test with basic commands
-- [ ] Check `.env` file exists (for online features)
-- [ ] Try running tests
-
-## 🌟 Star History
-
-If you find this project useful, please consider giving it a star on GitHub! ⭐
+## 🌟 **Star History**
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Tethi04/voice-assistant-leo&type=Date)](https://star-history.com/#Tethi04/voice-assistant-leo&Date)
 
@@ -547,41 +451,46 @@ If you find this project useful, please consider giving it a star on GitHub! ⭐
 
 <div align="center">
 
-**Made with ❤️ by [Tethi Biswas]**
+### **Built with ❤️ for the Python Community**
 
-*Part of Python Internship Project Phase*
+**If Leo helped you, give this repo a star! ⭐**
 
-**Happy Coding! 🚀**
+**Live Demos:**
+- 🎤 [Voice Demo](https://voice-assistant-leo-bte3ynpwrbtf3seehdzhjc.streamlit.app/)
+- 📱 [Web Demo](https://tethi04.github.io/voice-assistant-leo/)
+- 💾 [Source Code](https://github.com/Tethi04/voice-assistant-leo)
 
-<img src="https://img.icons8.com/color/96/000000/python--v1.png" width="50" alt="Python">
-<img src="https://img.icons8.com/color/96/000000/microphone--v1.png" width="50" alt="Microphone">
-<img src="https://img.icons8.com/color/96/000000/speech-bubble--v1.png" width="50" alt="Speech">
+[⬆ Back to Top](#-leo---voice-controlled-assistant)
 
 </div>
 
 ---
 
-## 📊 Project Status
+## 📝 **Changelog**
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Core Assistant | ✅ Complete | All basic features working |
-| Offline Mode | ✅ Complete | CMU Sphinx integration |
-| Online Features | ✅ Complete | Weather, News, Search |
-| API Security | ✅ Complete | `.env` protection |
-| Documentation | ✅ Complete | This README |
-| Testing | ✅ Complete | Unit tests included |
-| Cross-Platform | ✅ Complete | Windows, macOS, Linux |
+### **v1.0.0** (Initial Release)
+- ✅ Basic voice recognition (online/offline)
+- ✅ Text-to-speech responses
+- ✅ Time, date, jokes, notes
+- ✅ Weather and news integration
+- ✅ App control and web search
+- ✅ Web demos (Streamlit + GitHub Pages)
+- ✅ Comprehensive documentation
 
-**Last Updated**: December 2025
-**Python Version**: 3.8+  
-**License**: MIT  
-**Maintainer**: [Tethi Biswas]
+### **Future Enhancements**
+- [ ] Multiple language support
+- [ ] Voice customization options
+- [ ] Scheduled reminders
+- [ ] Email integration
+- [ ] Calendar synchronization
+- [ ] Smart home device control
 
 ---
 
-**Note for Internship Submission**: 
-- This project demonstrates understanding of Python programming, API integration, voice recognition, and software security
-- The `.env` file protection shows awareness of API key security best practices
-- Both offline and online modes showcase adaptability and fallback mechanisms
-- The modular design allows for easy extension and maintenance
+**Last Updated**: December 2025 
+**Maintainer**: [Tethi04](https://github.com/Tethi04)  
+**Status**: Actively Maintained
+
+---
+
+*Note: This project is for educational purposes. Always respect privacy and terms of service of APIs used.*
