@@ -379,36 +379,12 @@ def handle_new_command(self, text):
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-```
-MIT License
-
-Copyright (c) 2025 Tethi04
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
 ## 🙏 **Acknowledgments**
 
 ### **Libraries & APIs Used**
 - **[SpeechRecognition](https://github.com/Uberi/speech_recognition)** - Voice recognition
 - **[pyttsx3](https://github.com/nateshmbhat/pyttsx3)** - Text-to-speech
-- **[Streamlit](https://streamlit.io/)** - Web app framework
+- **[streamlit](https://streamlit.io/)** - Web app framework
 - **[OpenWeatherMap](https://openweathermap.org/)** - Weather data
 - **[NewsAPI](https://newsapi.org/)** - News headlines
 - **[Requests](https://github.com/psf/requests)** - HTTP requests
