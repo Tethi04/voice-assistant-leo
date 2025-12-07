@@ -1,4 +1,4 @@
-# main.py - UPDATED WITH BETTER ERROR HANDLING
+# main.py - CORRECTED VERSION
 import sys
 import traceback
 
@@ -7,7 +7,7 @@ def check_dependencies():
     required_modules = [
         'speech_recognition',
         'pyttsx3',
-        'python_dotenv',
+        'dotenv',  
         'requests',
         'bs4'
     ]
@@ -15,21 +15,19 @@ def check_dependencies():
     missing = []
     for module in required_modules:
         try:
-            if module == 'python_dotenv':
-                __import__('dotenv')
-            elif module == 'bs4':
-                __import__('bs4')
-            else:
-                __import__(module)
-        except ImportError as e:
+            __import__(module)
+        except ImportError:
             missing.append(module)
     
     return missing
 
 def main():
-    print("="*50)
-    print("        LEO VOICE ASSISTANT")
-    print("="*50)
+    print("="*60)
+    print("            LEO VOICE ASSISTANT")
+    print("="*60)
+    
+    # Check Python version
+    print(f"Python version: {sys.version[:6]}")
     
     # Check dependencies
     missing_modules = check_dependencies()
@@ -45,12 +43,14 @@ def main():
         print("   pipwin install pyaudio")
         return
     
+    print("\n✅ All dependencies installed!")
+    
     # Try to import and run
     try:
         from src.assistant import VoiceAssistant
         from src.config import Config
         
-        # Validate API keys (just warning, don't stop)
+        # Validate API keys
         Config.validate_keys()
         
         # Create and run assistant
@@ -58,26 +58,37 @@ def main():
         
         print(f"\n🎤 Assistant: {assistant.name}")
         print("📋 Available commands:")
-        print("   - 'Hello Leo', 'What time is it?', 'Tell me a joke'")
-        print("   - 'What's the weather?', 'What's the news?' (needs API keys)")
-        print("   - 'Open calculator', 'Remember [note]', 'Exit'")
+        print("   • 'Hello Leo' - Greeting")
+        print("   • 'What time is it?' - Current time")
+        print("   • 'Tell me a joke' - Random joke")
+        print("   • 'What's the weather?' - Weather info (needs API key)")
+        print("   • 'What's the news?' - News headlines (needs API key)")
+        print("   • 'Open calculator' - Opens calculator app")
+        print("   • 'Remember [note]' - Saves a note")
+        print("   • 'What are my notes?' - Shows saved notes")
+        print("   • 'Exit' - Close program")
         print("\n🎯 Speak clearly into your microphone")
         print("   Say 'Exit' to quit")
-        print("="*50)
+        print("="*60)
         
         assistant.run()
         
     except ImportError as e:
         print(f"\n❌ Import error: {e}")
-        print("\n🔧 Try reinstalling dependencies:")
-        print("   pip install --upgrade -r requirements.txt")
+        print("\n🔧 Solutions:")
+        print("   1. Check if src/ folder exists with all .py files")
+        print("   2. Run: pip install --upgrade -r requirements.txt")
+        print("   3. Restart terminal/IDE")
+    except KeyboardInterrupt:
+        print("\n\n👋 Program stopped by user. Goodbye!")
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
         traceback.print_exc()
-        print("\n💡 Common solutions:")
-        print("   1. Use Python 3.8-3.12 (Python 3.13 has issues)")
-        print("   2. Run as Administrator (Windows)")
-        print("   3. Check microphone permissions")
+        print("\n💡 Common fixes:")
+        print("   1. Run as Administrator (Windows)")
+        print("   2. Check microphone permissions")
+        print("   3. Use Python 3.8-3.11 (Python 3.12+ may have issues)")
+        print("   4. Install PyAudio: pip install pyaudio")
 
 if __name__ == "__main__":
     main()
