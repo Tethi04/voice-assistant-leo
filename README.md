@@ -419,6 +419,13 @@ print('TTS Voices:', len(pyttsx3.init().getProperty('voices')))
 - **📱 Web Interface**: [GitHub Pages](https://tethi04.github.io/voice-assistant-leo/)
 - **💾 Source Code**: [GitHub Repository](https://github.com/Tethi04/voice-assistant-leo)
 
+  ## 📹 **Demo Videos**
+
+### **YouTube Demo Short**
+Watch a quick demo showing Leo in action! This video demonstrates the voice assistant working in GitHub Codespaces and explains how to get full voice recognition working locally:
+
+[![Watch the Demo](https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube)](https://youtube.com/shorts/GTaNjs6Wi8Y?si=GowLku1nS4iJO00h)
+
 ## 🌟 **Star History**
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Tethi04/voice-assistant-leo&type=Date)](https://star-history.com/#Tethi04/voice-assistant-leo&Date)
