@@ -5,8 +5,13 @@ python-dotenv==1.0.0
 requests==2.31.0
 beautifulsoup4==4.12.2
 
-# Audio - platform specific (may need separate installation)
-# pyaudio>=0.2.11  # Commented - install based on platform
+# PyAudio (platform-specific, may need manual install)
+# Windows: pip install pipwin && pipwin install pyaudio
+# Mac/Linux: pip install pyaudio
+# pyaudio>=0.2.11
 
-# Optional for Streamlit web demo
+# For Streamlit web demo (optional)
 streamlit>=1.28.0
+
+# Development/testing
+pytest>=7.0.0
