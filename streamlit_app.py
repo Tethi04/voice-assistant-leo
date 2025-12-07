@@ -1,4 +1,4 @@
-                                    # streamlit_app.py - FINAL WORKING VERSION
+# streamlit_app.py - COMPLETE WORKING VERSION
 import streamlit as st
 import sys
 import os
@@ -7,8 +7,9 @@ from datetime import datetime
 # Add current directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# Page configuration
 st.set_page_config(
-    page_title="Leo Voice Assistant 🎤",
+    page_title="Leo Voice Assistant",
     page_icon="🎤",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -17,280 +18,305 @@ st.set_page_config(
 # Initialize session state
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
-if 'voice_command' not in st.session_state:
-    st.session_state.voice_command = ""
+if 'current_command' not in st.session_state:
+    st.session_state.current_command = ""
 
-# Main title
-st.title("🎤 Leo Voice Assistant")
-st.markdown("### Speak commands and hear responses in male voice!")
-
-# Inject HTML/JavaScript for Web Speech API
+# Custom CSS
 st.markdown("""
 <style>
-    .voice-container {
-        text-align: center;
-        margin: 20px 0;
+    /* Main container */
+    .main {
         padding: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 15px;
-        color: white;
     }
+    
+    /* Voice button */
     .voice-btn {
-        background: white;
-        color: #667eea;
+        background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+        color: white;
         border: none;
         padding: 15px 30px;
-        font-size: 18px;
         border-radius: 50px;
-        cursor: pointer;
+        font-size: 18px;
         font-weight: bold;
-        margin: 10px;
+        cursor: pointer;
         transition: all 0.3s;
+        margin: 10px;
         display: inline-flex;
         align-items: center;
-        gap: 10px;
+        justify-content: center;
     }
+    
     .voice-btn:hover {
         transform: scale(1.05);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
     }
+    
     .voice-btn.listening {
-        background: #FF6B6B;
-        color: white;
+        background: linear-gradient(45deg, #4CAF50, #8BC34A);
         animation: pulse 1.5s infinite;
     }
+    
     @keyframes pulse {
         0% { transform: scale(1); }
         50% { transform: scale(1.05); }
         100% { transform: scale(1); }
     }
-    .status {
-        margin-top: 10px;
-        font-size: 14px;
-        color: rgba(255,255,255,0.8);
+    
+    /* Response box */
+    .response-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin: 20px 0;
+        animation: fadeIn 0.5s;
     }
-    .result-box {
-        margin-top: 15px;
-        padding: 10px;
-        background: rgba(255,255,255,0.1);
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Quick command buttons */
+    .quick-btn {
+        background: #f0f2f6;
+        border: 2px solid #4CAF50;
+        color: #4CAF50;
+        padding: 10px 15px;
         border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin: 5px;
+        font-weight: bold;
     }
-    .speak-btn {
+    
+    .quick-btn:hover {
         background: #4CAF50;
         color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 16px;
-        margin-top: 10px;
-        width: 100%;
+        transform: translateY(-2px);
+    }
+    
+    /* Chat bubbles */
+    .user-bubble {
+        background: #e3f2fd;
+        padding: 10px 15px;
+        border-radius: 15px 15px 3px 15px;
+        margin: 5px 0;
+        max-width: 80%;
+        float: right;
+        clear: both;
+    }
+    
+    .leo-bubble {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 15px 15px 15px 3px;
+        margin: 5px 0;
+        max-width: 80%;
+        float: left;
+        clear: both;
     }
 </style>
+""", unsafe_allow_html=True)
 
-<div class="voice-container">
-    <h3>🎤 Voice Control</h3>
-    <button id="voiceBtn" class="voice-btn" onclick="toggleVoice()">
-        <span id="micIcon">🎤</span>
-        <span id="btnText">Start Voice Command</span>
-    </button>
-    <div id="status" class="status">Click microphone and speak</div>
-    <div id="result" class="result-box"></div>
-</div>
-
+# JavaScript for Web Speech API
+voice_js = """
 <script>
-// Global variables
-let isListening = false;
+// Speech Recognition
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
+let isListening = false;
 
-// Initialize speech recognition
-function initSpeechRecognition() {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
-        
-        recognition.onstart = function() {
-            isListening = true;
-            updateUI(true);
-            document.getElementById('status').textContent = "🎤 Listening... Speak now!";
-        };
-        
-        recognition.onresult = function(event) {
-            const transcript = event.results[0][0].transcript;
-            document.getElementById('result').innerHTML = `<strong>You said:</strong> ${transcript}`;
-            document.getElementById('status').textContent = "Processing...";
-            
-            // Send to Streamlit via window message
-            window.parent.postMessage({
-                type: 'LEO_VOICE_COMMAND',
-                command: transcript
-            }, '*');
-            
-            // Also update input field
-            setTimeout(() => {
-                const inputs = document.getElementsByTagName('input');
-                for(let input of inputs) {
-                    if(input.type === 'text') {
-                        input.value = transcript;
-                        input.dispatchEvent(new Event('input', {bubbles: true}));
-                        break;
-                    }
-                }
-            }, 100);
-        };
-        
-        recognition.onerror = function(event) {
-            console.error('Speech error:', event.error);
-            document.getElementById('status').textContent = "Error: " + event.error;
-            updateUI(false);
-        };
-        
-        recognition.onend = function() {
-            isListening = false;
-            updateUI(false);
-            document.getElementById('status').textContent = "Click microphone to speak";
-        };
-        
-        return true;
-    } else {
-        document.getElementById('status').textContent = "❌ Voice not supported. Use Chrome.";
-        document.getElementById('voiceBtn').disabled = true;
-        return false;
-    }
-}
-
-// Toggle voice listening
-function toggleVoice() {
-    if (!recognition) {
-        if (!initSpeechRecognition()) return;
-    }
-    
-    if (isListening) {
-        recognition.stop();
-    } else {
-        // Request microphone permission
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(() => recognition.start())
-            .catch(() => alert('Please allow microphone access'));
-    }
-}
-
-// Update UI
-function updateUI(listening) {
-    const btn = document.getElementById('voiceBtn');
-    const icon = document.getElementById('micIcon');
-    const text = document.getElementById('btnText');
-    
-    if (listening) {
-        btn.classList.add('listening');
-        icon.textContent = '🛑';
-        text.textContent = 'Stop Listening';
-    } else {
-        btn.classList.remove('listening');
-        icon.textContent = '🎤';
-        text.textContent = 'Start Voice Command';
-    }
-}
-
-// Text-to-Speech with MALE voice
-function speakWithMaleVoice(text) {
+// Text-to-Speech
+function speakText(text) {
     if ('speechSynthesis' in window) {
         // Cancel any ongoing speech
         window.speechSynthesis.cancel();
         
         const utterance = new SpeechSynthesisUtterance(text);
         
-        // Get available voices
-        const voices = window.speechSynthesis.getVoices();
-        let maleVoice = null;
+        // Set voice properties
+        utterance.rate = 1.0;  // Speed
+        utterance.pitch = 1.0; // Pitch
+        utterance.volume = 1.0; // Volume
         
-        // Try to find a male voice
-        for (let voice of voices) {
-            if (voice.name.toLowerCase().includes('male') || 
-                voice.name.toLowerCase().includes('david') ||
-                voice.name.toLowerCase().includes('microsoft')) {
-                maleVoice = voice;
-                break;
-            }
+        // Try to get male voice
+        const voices = window.speechSynthesis.getVoices();
+        const maleVoices = voices.filter(voice => 
+            voice.name.toLowerCase().includes('male') || 
+            voice.name.toLowerCase().includes('david') ||
+            voice.name.toLowerCase().includes('mark') ||
+            voice.name.toLowerCase().includes('zira') === false
+        );
+        
+        if (maleVoices.length > 0) {
+            utterance.voice = maleVoices[0];
         }
         
-        // Configure voice
-        if (maleVoice) utterance.voice = maleVoice;
-        utterance.pitch = 0.8;  // Lower pitch for male voice
-        utterance.rate = 0.9;   // Slightly slower
-        utterance.volume = 1.0;
-        utterance.lang = 'en-US';
+        utterance.onstart = function() {
+            console.log('Started speaking:', text);
+        };
         
-        // Speak
+        utterance.onend = function() {
+            console.log('Finished speaking');
+        };
+        
         window.speechSynthesis.speak(utterance);
-        return true;
+    } else {
+        alert('Text-to-speech not supported in this browser. Please use Chrome, Edge, or Safari.');
     }
-    return false;
+}
+
+// Initialize speech recognition
+function initSpeechRecognition() {
+    if (!SpeechRecognition) {
+        document.getElementById('voiceStatus').innerHTML = 
+            '❌ Voice recognition not supported. Please use Chrome or Edge.';
+        document.getElementById('voiceBtn').disabled = true;
+        return false;
+    }
+    
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    
+    recognition.onstart = function() {
+        isListening = true;
+        document.getElementById('voiceBtn').classList.add('listening');
+        document.getElementById('voiceBtn').innerHTML = '🛑 Stop Listening';
+        document.getElementById('voiceStatus').innerHTML = '🎤 Listening... Speak now!';
+    };
+    
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('commandInput').value = transcript;
+        
+        // Submit the form
+        document.getElementById('commandForm').submit();
+    };
+    
+    recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        stopListening();
+    };
+    
+    recognition.onend = function() {
+        stopListening();
+    };
+    
+    return true;
+}
+
+// Start listening
+function startListening() {
+    if (!recognition) {
+        if (!initSpeechRecognition()) {
+            return;
+        }
+    }
+    
+    // Request microphone permission
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+            stream.getTracks().forEach(track => track.stop());
+            recognition.start();
+        })
+        .catch(function(err) {
+            console.error('Microphone error:', err);
+            document.getElementById('voiceStatus').innerHTML = 
+                '❌ Microphone access denied. Please allow microphone permission.';
+        });
+}
+
+// Stop listening
+function stopListening() {
+    if (recognition && isListening) {
+        recognition.stop();
+    }
+    isListening = false;
+    document.getElementById('voiceBtn').classList.remove('listening');
+    document.getElementById('voiceBtn').innerHTML = '🎤 Start Voice Command';
+    document.getElementById('voiceStatus').innerHTML = 'Click microphone to speak';
+}
+
+// Toggle listening
+function toggleListening() {
+    if (isListening) {
+        stopListening();
+    } else {
+        startListening();
+    }
+}
+
+// Quick command handler
+function quickCommand(command) {
+    document.getElementById('commandInput').value = command;
+    document.getElementById('commandForm').submit();
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     initSpeechRecognition();
     
-    // Listen for messages from Streamlit
-    window.addEventListener('message', function(event) {
-        if (event.data.type === 'streamlit:setComponentValue') {
-            // Handle Streamlit messages
-        }
-    });
+    // Add event listeners
+    document.getElementById('voiceBtn').addEventListener('click', toggleListening);
+    
+    // Test TTS voices
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = function() {
+            console.log('Voices loaded:', window.speechSynthesis.getVoices().length);
+        };
+    }
 });
-
-// Make functions globally available
-window.speakWithMaleVoice = speakWithMaleVoice;
-window.toggleVoice = toggleVoice;
 </script>
-""", unsafe_allow_html=True)
+"""
 
-# Create columns
-col1, col2 = st.columns([2, 1])
+# Inject JavaScript
+st.markdown(voice_js, unsafe_allow_html=True)
+
+# Header
+st.title("🎤 Leo Voice Assistant - Live Demo")
+st.markdown("**Speak commands or type them below. Leo will respond with voice!**")
+
+# Main layout
+col1, col2 = st.columns([3, 2])
 
 with col1:
-    # Manual input section
-    st.subheader("📝 Type Command (or use voice above)")
+    # Voice control section
+    st.subheader("🎙️ Voice Control")
     
-    # Listen for voice commands from JavaScript
-    import streamlit.components.v1 as components
+    # Voice button
+    st.markdown("""
+    <div style="text-align: center; margin: 20px 0;">
+        <button id="voiceBtn" class="voice-btn">
+            🎤 Start Voice Command
+        </button>
+        <div id="voiceStatus" style="margin-top: 10px; color: #666; font-size: 14px;">
+            Click microphone to speak
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    components.html("""
-    <script>
-    // Listen for voice commands and forward to Streamlit
-    window.addEventListener('message', function(event) {
-        if (event.data.type === 'LEO_VOICE_COMMAND') {
-            // Send to Streamlit
-            window.parent.postMessage({
-                type: 'streamlit:setComponentValue',
-                value: event.data.command
-            }, '*');
-        }
-    });
-    </script>
-    """, height=0)
+    # Command input form
+    with st.form("commandForm", clear_on_submit=True):
+        command = st.text_input(
+            "Or type your command here:", 
+            key="commandInput",
+            placeholder="e.g., 'What time is it?' or 'Tell me a joke'"
+        )
+        
+        col_submit1, col_submit2, col_submit3 = st.columns([1, 1, 1])
+        with col_submit1:
+            submit_button = st.form_submit_button("🚀 Send Command", use_container_width=True)
+        with col_submit2:
+            clear_button = st.form_submit_button("🗑️ Clear", use_container_width=True)
+        with col_submit3:
+            speak_button = st.form_submit_button("🔊 Test Voice", use_container_width=True)
     
-    # Text input for commands
-    command = st.text_input("Enter your command:", key="command_input", 
-                           placeholder="Type here or use voice above...")
-    
-    # Process button
-    if st.button("🚀 Process Command", type="primary"):
-        if command:
-            st.session_state.voice_command = command
-    
-    # Also process if command is received from voice
-    if st.session_state.voice_command:
-        command = st.session_state.voice_command
-        st.session_state.voice_command = ""  # Clear after processing
-
-    # Process the command
-    if command:
+    # Process command
+    if submit_button and command:
         try:
             from src.commands import CommandHandler
             from src.utils import Utils
@@ -313,38 +339,44 @@ with col1:
             
             # Display response
             st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
-                        color: white; padding: 20px; border-radius: 10px; margin: 15px 0;">
+            <div class="response-box">
                 <h4>🤖 Leo's Response:</h4>
-                <p style="font-size: 16px; line-height: 1.5;">{response}</p>
+                <p>{response}</p>
+                <button onclick="speakText('{response.replace("'", "\\'")}')" 
+                        style="background: #4CAF50; color: white; border: none; 
+                               padding: 10px 20px; border-radius: 5px; cursor: pointer;
+                               margin-top: 10px; font-size: 16px;">
+                    🔊 Speak This Response
+                </button>
             </div>
             """, unsafe_allow_html=True)
             
-            # Add speak button
-            safe_response = response.replace("'", "&#39;").replace('"', "&quot;")
+            # Auto-speak response
             st.markdown(f"""
-            <button onclick="speakWithMaleVoice('{safe_response}')" 
-                    class="speak-btn">
-                🔊 Hear Leo's Response (Male Voice)
-            </button>
+            <script>
+                setTimeout(function() {{
+                    speakText("{response.replace('"', '\\"').replace("'", "\\'")}");
+                }}, 500);
+            </script>
             """, unsafe_allow_html=True)
             
-            # Visual effects based on command
-            if "weather" in command.lower():
-                st.balloons()
-                st.success("🌤️ Weather data retrieved!")
-            elif "joke" in command.lower():
-                st.balloons()
-                st.success("😄 Hope you enjoyed the joke!")
-            elif "news" in command.lower():
-                st.success("📰 Latest headlines fetched!")
-            
         except ImportError as e:
-            st.error(f"❌ Import error: {e}")
-            st.info("Make sure all Python modules are installed in requirements.txt")
+            st.error(f"❌ Import Error: {str(e)}")
+            st.info("Make sure all Python files exist in the src/ folder.")
         except Exception as e:
-            st.error(f"❌ Error: {e}")
-            st.info("Try commands like: hello, time, joke, weather, news, remember [note]")
+            st.error(f"❌ Error: {str(e)}")
+    
+    if clear_button:
+        st.session_state.chat_history = []
+        st.rerun()
+    
+    if speak_button:
+        st.markdown("""
+        <script>
+            speakText("Hello! I am Leo, your voice assistant. Try saying 'What time is it?' or 'Tell me a joke'.");
+        </script>
+        """, unsafe_allow_html=True)
+        st.success("🔊 Playing test voice...")
 
 with col2:
     # Quick commands
@@ -352,152 +384,146 @@ with col2:
     
     quick_commands = [
         ("👋 Hello Leo", "hello"),
-        ("🕒 Current Time", "what time is it"),
-        ("😄 Tell a Joke", "tell me a joke"),
-        ("🌤️ Weather", "what's the weather"),
-        ("📰 Latest News", "what's the news"),
-        ("📝 Add Note", "remember buy milk"),
-        ("🔍 Search Web", "search for Python"),
-        ("🧮 Calculator", "open calculator"),
+        ("🕒 What time is it?", "what time is it"),
+        ("😄 Tell me a joke", "tell me a joke"),
+        ("🌤️ Weather in London", "weather in london"),
+        ("📰 Latest news", "what's the news"),
+        ("📝 Remember milk", "remember buy milk"),
+        ("🔍 Search Python", "search for python"),
+        ("🔧 Open calculator", "open calculator"),
+        ("📖 My notes", "what are my notes"),
+        ("🚪 Exit program", "exit")
     ]
     
-    for display, cmd in quick_commands:
-        if st.button(display, key=f"quick_{cmd}"):
-            # Update the command input
-            st.session_state.command_input = cmd
-            st.rerun()
+    # Create quick command buttons
+    cols = st.columns(2)
+    for i, (display, cmd) in enumerate(quick_commands):
+        with cols[i % 2]:
+            if st.button(display, key=f"quick_{i}", use_container_width=True):
+                # Update command input and submit
+                st.session_state.current_command = cmd
+                st.rerun()
     
-    st.markdown("---")
-    
-    # Conversation history
-    st.subheader("📜 Conversation History")
-    
-    if st.session_state.chat_history:
-        for msg in reversed(st.session_state.chat_history[-5:]):
-            if msg["type"] == "user":
-                st.markdown(f"**You ({msg['time']}):** {msg['content']}")
-            else:
-                content = msg['content']
-                if len(content) > 60:
-                    content = content[:60] + "..."
-                st.markdown(f"**Leo ({msg['time']}):** {content}")
-    else:
-        st.info("No conversation yet. Try speaking or typing!")
+    # Process quick command from session state
+    if st.session_state.current_command:
+        command = st.session_state.current_command
+        st.session_state.current_command = ""
+        
+        try:
+            from src.commands import CommandHandler
+            handler = CommandHandler()
+            response = handler.handle_command(command)
+            
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            st.session_state.chat_history.append({
+                "time": timestamp,
+                "type": "user",
+                "content": command
+            })
+            st.session_state.chat_history.append({
+                "time": timestamp,
+                "type": "leo",
+                "content": response
+            })
+            
+            # Auto-speak response
+            st.markdown(f"""
+            <script>
+                speakText("{response.replace('"', '\\"').replace("'", "\\'")}");
+            </script>
+            """, unsafe_allow_html=True)
+            
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+# Chat history
+st.markdown("---")
+st.subheader("💬 Conversation History")
+
+if st.session_state.chat_history:
+    for msg in reversed(st.session_state.chat_history[-6:]):  # Show last 6
+        if msg["type"] == "user":
+            st.markdown(f"""
+            <div class="user-bubble">
+                <small style="color: #666;">{msg['time']}</small><br>
+                <strong>You:</strong> {msg['content']}
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div class="leo-bubble">
+                <small style="opacity: 0.8;">{msg['time']}</small><br>
+                <strong>Leo:</strong> {msg['content']}
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown("<div style='clear: both;'></div>", unsafe_allow_html=True)
+else:
+    st.info("No conversation yet. Try speaking or typing a command!")
 
 # Features section
 st.markdown("---")
 st.subheader("✨ Features")
 
-features = st.columns(3)
-feature_data = [
-    ("🎤", "Voice Input", "Speak commands naturally"),
-    ("🔊", "Male Voice Output", "Hear responses in masculine tone"),
-    ("🌐", "Browser-Based", "Works in Chrome/Edge/Safari"),
-    ("📱", "Mobile Friendly", "Works on phones and tablets"),
-    ("⚡", "Fast Response", "Instant command processing"),
-    ("🔧", "System Control", "Open apps, search web, more")
+features = st.columns(4)
+features_data = [
+    ("🎤", "Voice Commands", "Speak naturally to Leo"),
+    ("🔊", "Male Voice", "Clear male voice responses"),
+    ("🌐", "Browser-Based", "No installation needed"),
+    ("⚡", "Instant", "Quick responses in real-time"),
 ]
 
-for i in range(3):
-    with features[i]:
-        for j in range(2):
-            idx = i * 2 + j
-            if idx < len(feature_data):
-                icon, title, desc = feature_data[idx]
-                st.markdown(f"""
-                <div style="padding: 15px; background: #f8f9fa; border-radius: 10px; margin-bottom: 10px;">
-                    <h4>{icon} {title}</h4>
-                    <p style="color: #666; font-size: 14px;">{desc}</p>
-                </div>
-                """, unsafe_allow_html=True)
+for idx, (icon, title, desc) in enumerate(features_data):
+    with features[idx]:
+        st.markdown(f"""
+        <div style="text-align: center; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px;">
+            <h2>{icon}</h2>
+            <h4>{title}</h4>
+            <p>{desc}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 # Instructions
 with st.expander("📖 How to Use", expanded=True):
     st.markdown("""
-    ### **Using Voice:**
-    1. **Click** 🎤 **"Start Voice Command"** button
-    2. **Allow** microphone access when browser asks
-    3. **Speak** your command clearly (e.g., "Hello Leo", "What time is it?")
-    4. **Wait** for Leo's text response
-    5. **Click** 🔊 **"Hear Leo's Response"** to listen
+    ### **Using Voice Commands:**
+    1. **Click the 🎤 microphone button**
+    2. **Allow microphone permission** when browser asks
+    3. **Speak clearly** into your microphone
+    4. **Wait for Leo's response** (text + voice)
     
-    ### **Using Text:**
+    ### **Using Text Commands:**
     1. **Type** your command in the text box
-    2. **Click** 🚀 **"Process Command"** button
-    3. **Click** 🔊 button to hear response
+    2. **Press Enter** or click "Send Command"
+    3. **Leo will respond** with text and voice
     
     ### **Quick Commands:**
-    - **Hello Leo** - Greeting
-    - **What time is it?** - Current time
-    - **Tell me a joke** - Random joke
-    - **What's the weather?** - Weather info
-    - **What's the news?** - Latest headlines
-    - **Remember [note]** - Save a note
-    - **Search for [topic]** - Web search
+    - Click any quick command button
+    - Leo will respond immediately
     
-    ### **Best Results:**
-    - Use **Google Chrome** (best voice support)
-    - **Allow microphone** permissions
-    - Speak **clearly** in quiet environment
+    ### **Browser Requirements:**
+    - ✅ **Chrome** (recommended)
+    - ✅ **Edge** 
+    - ✅ **Safari**
+    - ❌ Firefox (limited voice support)
+    
+    ### **Troubleshooting:**
+    - Ensure microphone is connected
+    - Allow microphone permission
+    - Use Chrome for best results
+    - Speak clearly and slowly
     """)
 
 # Footer
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #666; padding: 20px;">
-    <p>🔗 <a href="https://github.com/Tethi04/voice-assistant-leo" 
-           style="color: #4CAF50; text-decoration: none; font-weight: bold;">
+    <p>🔗 <a href="https://github.com/Tethi04/voice-assistant-leo" target="_blank" style="color: #4CAF50; text-decoration: none; font-weight: bold;">
         View Full Source Code on GitHub
     </a></p>
-    <p>🎤 Voice Assistant Project | 🤖 Python + Streamlit | 🚀 Deployed on Cloud</p>
+    <p>🎤 Powered by Web Speech API | 🚀 Deployed on Streamlit Cloud</p>
+    <p style="font-size: 12px; margin-top: 20px;">
+        Note: This is a web demo. For full desktop features (app opening, etc.), 
+        download and run the Python application locally.
+    </p>
 </div>
 """, unsafe_allow_html=True)
-
-# Add JavaScript listener for voice commands
-components.html("""
-<script>
-// Listen for voice commands and update Streamlit
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'LEO_VOICE_COMMAND') {
-        // Store command in session storage
-        sessionStorage.setItem('last_voice_command', event.data.command);
-        
-        // Show a notification
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        `;
-        notification.innerHTML = `🎤 Voice command: "${event.data.command}"`;
-        document.body.appendChild(notification);
-        
-        // Remove notification after 3 seconds
-        setTimeout(() => notification.remove(), 3000);
-    }
-});
-
-// Check for stored voice command on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const lastCommand = sessionStorage.getItem('last_voice_command');
-    if (lastCommand) {
-        // Auto-fill the input field
-        const inputs = document.getElementsByTagName('input');
-        for(let input of inputs) {
-            if(input.type === 'text') {
-                input.value = lastCommand;
-                input.dispatchEvent(new Event('input', {bubbles: true}));
-                break;
-            }
-        }
-        sessionStorage.removeItem('last_voice_command');
-    }
-});
-</script>
-""", height=0)
