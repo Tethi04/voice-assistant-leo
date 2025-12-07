@@ -1,7 +1,15 @@
-streamlit>=1.28.0
+# Core dependencies
 SpeechRecognition==3.10.0
+pyttsx3==2.90
 python-dotenv==1.0.0
 requests==2.31.0
 beautifulsoup4==4.12.2
-pyttsx3==2.90
-pyaudio==0.2.14  
+pyaudio==0.2.14
+
+# For Streamlit web app (optional)
+streamlit>=1.28.0
+
+# Development tools (optional)
+pytest>=7.0.0
+black>=23.0.0
+flake8>=6.0.0
